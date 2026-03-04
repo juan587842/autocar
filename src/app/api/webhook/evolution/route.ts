@@ -3,14 +3,19 @@ import { createClient } from '@supabase/supabase-js'
 import type { WebhookPayload } from '@/lib/evolution'
 import { processMessage } from '@/lib/ai/ai-agent'
 
-// Usa Service Role para gravar sem RLS
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 // POST /api/webhook/evolution — Recebe eventos da Evolution API
 export async function POST(req: NextRequest) {
+    // Instantiate inside the handler to prevent build-time eval errors
+    const supabaseUrls = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+
+    // Only proceed if we have valid vars, or return early to avoid crash during dev/build
+    if (!supabaseUrls) {
+        return NextResponse.json({ error: 'Missing Database URL' }, { status: 500 })
+    }
+
+    const supabase = createClient(supabaseUrls, supabaseKey)
+
     try {
         const payload: WebhookPayload = await req.json()
 
@@ -18,15 +23,15 @@ export async function POST(req: NextRequest) {
 
         switch (payload.event) {
             case 'MESSAGES_UPSERT':
-                await handleMessageReceived(payload.data)
+                await handleMessageReceived(payload.data, supabase)
                 break
 
             case 'MESSAGES_UPDATE':
-                await handleButtonResponse(payload.data)
+                await handleButtonResponse(payload.data, supabase)
                 break
 
             case 'CONNECTION_UPDATE':
-                await handleConnectionUpdate(payload.data)
+                await handleConnectionUpdate(payload.data, supabase)
                 break
 
             case 'QRCODE_UPDATED':
@@ -48,7 +53,7 @@ export async function POST(req: NextRequest) {
 // ==============================================
 // Handler: Nova Mensagem Recebida
 // ==============================================
-async function handleMessageReceived(data: any) {
+async function handleMessageReceived(data: any, supabase: any) {
     const messages = Array.isArray(data) ? data : [data]
 
     for (const msg of messages) {
@@ -176,7 +181,7 @@ async function handleMessageReceived(data: any) {
 // ==============================================
 // Handler: Status de Conexão Atualizado
 // ==============================================
-async function handleConnectionUpdate(data: any) {
+async function handleConnectionUpdate(data: any, supabase: any) {
     const state = data?.state || data?.status
     console.log(`[Webhook] Connection Status: ${state}`)
     // Pode-se salvar em store_settings ou cache local
@@ -185,7 +190,7 @@ async function handleConnectionUpdate(data: any) {
 // ==============================================
 // Handler: Resposta de Botão Interativo (Confirmar/Cancelar/Reagendar)
 // ==============================================
-async function handleButtonResponse(data: any) {
+async function handleButtonResponse(data: any, supabase: any) {
     const updates = Array.isArray(data) ? data : [data]
 
     for (const update of updates) {
