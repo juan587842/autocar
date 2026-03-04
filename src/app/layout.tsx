@@ -5,6 +5,7 @@ import { CustomCursor } from '@/components/layout/custom-cursor'
 import { BottomBar } from '@/components/layout/bottom-bar'
 import { PwaRegistrar } from '@/components/pwa-registrar'
 import { ComparatorDrawer } from '@/components/catalogo/comparator-drawer'
+import { Toaster } from 'react-hot-toast'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -55,6 +56,7 @@ export default function RootLayout({
         {children}
         <BottomBar />
         <ComparatorDrawer />
+        <Toaster position="top-center" />
       </body>
     </html>
   )
