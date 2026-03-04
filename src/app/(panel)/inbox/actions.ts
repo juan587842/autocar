@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { sendText } from '@/lib/evolution'
 
 interface SendMessageResult {
     success: boolean
@@ -33,44 +34,26 @@ export async function sendMessage(conversationId: string, content: string): Prom
                 .eq('id', conversationId)
         }
 
-        // 3. Obter configurações da loja (para API da Evolution e URL)
+        // 3. Obter configurações da loja para o nome da instância (Evolution)
         const { data: settings } = await supabase
             .from('store_settings')
-            .select('evolution_api_instance, api_keys')
+            .select('evolution_api_instance')
             .limit(1)
             .single()
 
         const instanceName = settings?.evolution_api_instance || process.env.EVOLUTION_INSTANCE_NAME || 'autocar'
-        const apiUrl = process.env.EVOLUTION_API_URL || 'http://localhost:8080'
 
-        let evolutionKey = process.env.EVOLUTION_API_KEY || ''
-        if (settings?.api_keys && typeof settings.api_keys === 'object' && 'evolution_api' in settings.api_keys) {
-            evolutionKey = (settings.api_keys as any).evolution_api || evolutionKey
-        }
-
-        // 4. Enviar mensagem real para a Evolution API
+        // 4. Enviar mensagem via WhatsApp através da função centralizada
         const phone = conv.phone
 
-        const response = await fetch(`${apiUrl}/message/sendText/${instanceName}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'apikey': evolutionKey
-            },
-            body: JSON.stringify({
-                number: `${phone}@s.whatsapp.net`,
-                text: content,
-                delay: 1200
-            })
-        })
+        const response = await sendText(`${phone}@s.whatsapp.net`, content, instanceName, 1200)
 
-        if (!response.ok) {
-            const errBody = await response.text()
-            console.error('[Inbox Action] Erro Evolution:', errBody)
+        if (response.error) {
+            console.error('[Inbox Action] Erro Evolution:', response.error)
             return { success: false, message: 'Falha ao enviar via WhatsApp' }
         }
 
-        const evoData = await response.json()
+        const evoData = response.data
 
         // 5. Inserir a mensagem no Supabase localmente (o webhook de ACK atualiza status depois)
         await supabase
