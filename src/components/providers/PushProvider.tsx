@@ -40,7 +40,7 @@ export default function PushProvider({ children }: { children: React.ReactNode }
 
                 // Inscreve para push
                 const subscription = await registration.pushManager.subscribe({
-                    userVisuallyPromission: true,
+                    userVisibleOnly: true,
                     applicationServerKey: urlBase64ToUint8Array(vapidPublicKey!),
                 } as any)
 
