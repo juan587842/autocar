@@ -95,7 +95,7 @@ export default function InventoryClient({ initialVehicles = [] }: { initialVehic
         }
     }
 
-    const fallbackImg = 'https://images.unsplash.com/photo-1590362891991-f20bc081e537?q=80&w=2670&auto=format&fit=crop'
+    const fallbackImg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMzMzMiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTZweCIgZmlsbD0iIzY2NiIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U2VtIGZvdG88L3RleHQ+PC9zdmc+'
 
     return (
         <div className="space-y-6">
@@ -233,7 +233,12 @@ export default function InventoryClient({ initialVehicles = [] }: { initialVehic
                                             src={car.image || fallbackImg}
                                             alt={car.model}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                            onError={(e) => { (e.target as HTMLImageElement).src = fallbackImg }}
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                if (target.src !== fallbackImg) {
+                                                    target.src = fallbackImg;
+                                                }
+                                            }}
                                         />
                                         <span className={`absolute bottom-3 left-3 px-3 py-1 text-xs font-bold rounded-full border z-20 backdrop-blur-md ${statusColors[car.statusColor as keyof typeof statusColors] || statusColors.disponivel}`}>
                                             {car.status}
@@ -276,7 +281,12 @@ export default function InventoryClient({ initialVehicles = [] }: { initialVehic
                                                         src={car.image || fallbackImg}
                                                         alt={car.model}
                                                         className="w-16 h-12 rounded-lg object-cover border border-white/10 shrink-0"
-                                                        onError={(e) => { (e.target as HTMLImageElement).src = fallbackImg }}
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            if (target.src !== fallbackImg) {
+                                                                target.src = fallbackImg;
+                                                            }
+                                                        }}
                                                     />
                                                     <div>
                                                         <p className="font-semibold text-white truncate max-w-[200px] sm:max-w-xs">{car.brand} {car.model}</p>

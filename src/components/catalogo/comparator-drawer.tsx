@@ -82,7 +82,13 @@ export function ComparatorDrawer() {
                             <div className="flex -space-x-3">
                                 {vehicles.map((v, i) => (
                                     <div key={v.id} className="w-8 h-8 rounded-full border-2 border-[#0a0a0a] overflow-hidden bg-white/10 relative z-10" style={{ zIndex: 10 - i }}>
-                                        <img src={v.image || v.thumbnail_url || v.photos?.[0]} alt={v.model} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=2070&auto=format&fit=crop' }} />
+                                        <img src={v.image || v.thumbnail_url || v.photos?.[0]} alt={v.model} className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                const fallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMzMzMiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTZweCIgZmlsbD0iIzY2NiIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U2VtIGZvdG88L3RleHQ+PC9zdmc+';
+                                                if (target.src !== fallback) target.src = fallback;
+                                            }}
+                                        />
                                     </div>
                                 ))}
                                 {Array.from({ length: Math.max(0, 3 - vehicles.length) }).map((_, i) => (
@@ -142,7 +148,11 @@ export function ComparatorDrawer() {
                                                         src={car.image || car.thumbnail_url || car.photos?.[0]}
                                                         alt={car.model}
                                                         className="w-full h-full object-cover"
-                                                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=2070&auto=format&fit=crop' }}
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            const fallback = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMzMzMiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTZweCIgZmlsbD0iIzY2NiIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U2VtIGZvdG88L3RleHQ+PC9zdmc+';
+                                                            if (target.src !== fallback) target.src = fallback;
+                                                        }}
                                                     />
                                                 </div>
 
