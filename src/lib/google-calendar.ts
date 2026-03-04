@@ -3,7 +3,8 @@ import { createClient as createAdminClient } from '@supabase/supabase-js'
 
 // ─── Constants ──────────────────────────────────────────
 const SCOPES = ['https://www.googleapis.com/auth/calendar']
-const REDIRECT_URI = `${process.env.NEXT_PUBLIC_APP_URL}/api/calendar/callback`
+const APP_BASE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://autocar.juanpaulo.com.br').replace(/^http:\/\//, 'https://')
+const REDIRECT_URI = `${APP_BASE_URL}/api/calendar/callback`
 
 // ─── OAuth2 Client ──────────────────────────────────────
 export function getOAuth2Client() {
