@@ -28,9 +28,11 @@ export async function POST(req: Request) {
                     .from('holidays')
                     .upsert(
                         {
-                            title: holiday.name,
+                            name: holiday.name,
                             date: holiday.date,
+                            type: holiday.type || 'national',
                             recurring: true,
+                            source: 'api',
                         },
                         { onConflict: 'date' }
                     )
