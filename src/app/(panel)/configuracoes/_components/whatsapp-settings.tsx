@@ -229,8 +229,18 @@ export function WhatsappSettings() {
                             <p className="text-lg font-mono text-white font-medium mt-1">{phoneNumber}</p>
 
                             <div className="mt-4 pt-4 border-t border-white/10">
-                                <p className="text-sm text-white/60 mb-1">Nome da Instância</p>
-                                <p className="text-sm font-mono text-white/90">{instanceName}</p>
+                                <label className="text-sm text-white/60 mb-2 font-medium flex justify-between items-center">
+                                    Nome da Instância API
+                                    <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white/50">Editável</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={instanceName}
+                                    onChange={(e) => handleInstanceNameChange(e.target.value)}
+                                    placeholder="ex: autocar2"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-[#25D366]/50 transition-colors font-mono text-sm"
+                                    title="Altere o nome para inspecionar outra instância conectada ou para mudar a instância ativa na loja."
+                                />
                             </div>
                         </div>
                     )}
