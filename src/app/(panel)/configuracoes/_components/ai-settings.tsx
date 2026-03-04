@@ -47,18 +47,35 @@ export function AiSettings() {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-white/80 flex items-center gap-2">
-                            <KeyRound className="w-4 h-4 text-purple-400" /> OpenAI API Key
-                        </label>
-                        <input
-                            type="password"
-                            placeholder="sk-...."
-                            defaultValue="sk-1234567890abcdef1234567890abcdef"
-                            className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-white font-mono text-sm tracking-wider"
-                        />
-                        <p className="text-xs text-white/40">Sua chave é salva com criptografia forte no banco de dados.</p>
-                    </div>
+                    {settings.ai_default_model === 'Gemini 2.5 Flash' ? (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-white/80 flex items-center gap-2">
+                                <KeyRound className="w-4 h-4 text-purple-400" /> Google Gemini API Key
+                            </label>
+                            <input
+                                type="password"
+                                placeholder="AIzaSy..."
+                                value="***************************************"
+                                readOnly
+                                className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white/50 font-mono text-sm tracking-wider cursor-not-allowed"
+                            />
+                            <p className="text-xs text-white/40">Sua chave do Gemini está configurada globalmente pelo sistema (.env).</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-white/80 flex items-center gap-2">
+                                <KeyRound className="w-4 h-4 text-purple-400" /> OpenAI API Key
+                            </label>
+                            <input
+                                type="password"
+                                placeholder="sk-..."
+                                value="***************************************"
+                                readOnly
+                                className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white/50 font-mono text-sm tracking-wider cursor-not-allowed"
+                            />
+                            <p className="text-xs text-white/40">Sua chave da OpenAI está configurada globalmente pelo sistema (.env).</p>
+                        </div>
+                    )}
 
                 </div>
             </div>
