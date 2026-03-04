@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, BellOff, Calendar, CalendarClock, CalendarX2, Car, ChevronRight, Clock, MapPin, Trash2, Edit2 } from 'lucide-react'
+import { Bell, BellOff, Calendar, CalendarClock, CalendarX2, Car, ChevronRight, Clock, MapPin, Trash2, Edit2, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 

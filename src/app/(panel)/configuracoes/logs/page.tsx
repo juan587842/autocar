@@ -32,7 +32,10 @@ export default async function LogsPage() {
         .order('created_at', { ascending: false })
         .limit(100)
 
-    const logs = logsData || []
+    const logs = (logsData || []).map((log: any) => ({
+        ...log,
+        users: Array.isArray(log.users) ? log.users[0] : log.users
+    }))
 
     return (
         <LogsClient initialLogs={logs} />
