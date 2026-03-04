@@ -223,12 +223,16 @@ export function WhatsappSettings() {
                         )}
                     </div>
 
-                    {connectionState === 'connected' && phoneNumber && (
+                    {connectionState === 'connected' && (
                         <div className="w-full bg-black/40 border border-white/5 rounded-xl p-4 mt-2">
-                            <p className="text-sm text-white/60">Número Conectado</p>
-                            <p className="text-lg font-mono text-white font-medium mt-1">{phoneNumber}</p>
+                            {phoneNumber && (
+                                <>
+                                    <p className="text-sm text-white/60">Número Conectado</p>
+                                    <p className="text-lg font-mono text-white font-medium mt-1 mb-4">{phoneNumber}</p>
+                                </>
+                            )}
 
-                            <div className="mt-4 pt-4 border-t border-white/10">
+                            <div className="pt-2 border-t border-white/10">
                                 <label className="text-sm text-white/60 mb-2 font-medium flex justify-between items-center">
                                     Nome da Instância API
                                     <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white/50">Editável</span>
