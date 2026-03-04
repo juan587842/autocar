@@ -102,9 +102,17 @@ export async function processMessage(
             },
         })
 
-        // 7. Enviar resposta via WhatsApp (Evolution API)
+        // 7. Enviar resposta via WhatsApp (Evolution API) em partes
         const evoInstance = instanceName || process.env.EVOLUTION_INSTANCE_NAME || 'autocar'
-        await sendText(phone, responseText, evoInstance)
+
+        // Quebra o texto por quebras de linha duplas (parágrafos)
+        const paragraphs = responseText.split(/\n\n+/).map(p => p.trim()).filter(Boolean)
+
+        for (const paragraph of paragraphs) {
+            // Simula tempo digitação: 30ms por caractere (mínimo 1000ms, máximo 4000ms)
+            const delayInMs = Math.min(Math.max(paragraph.length * 30, 1000), 4000)
+            await sendText(phone, paragraph, evoInstance, delayInMs)
+        }
 
         // 8. Atualizar conversa (última atividade + contagem)
         await supabase

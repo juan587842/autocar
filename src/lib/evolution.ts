@@ -91,13 +91,19 @@ export async function restartInstance(instanceName: string = INSTANCE_NAME) {
 // Messaging
 // ============================================
 
-export async function sendText(phone: string, text: string, instanceName: string = INSTANCE_NAME) {
+export async function sendText(phone: string, text: string, instanceName: string = INSTANCE_NAME, delayInMs?: number) {
+    const body: any = {
+        number: phone,
+        text,
+    }
+
+    if (delayInMs && delayInMs > 0) {
+        body.delay = delayInMs
+    }
+
     return evoFetch(`/message/sendText/${instanceName}`, {
         method: 'POST',
-        body: JSON.stringify({
-            number: phone,
-            text,
-        }),
+        body: JSON.stringify(body),
     })
 }
 
