@@ -25,7 +25,7 @@ export function IntegrationsSettings() {
                 .select('id, is_active')
                 .eq('user_id', user.id)
                 .eq('provider', 'google_calendar')
-                .single()
+                .maybeSingle()
 
             setGcalStatus(data?.is_active ? 'linked' : 'unlinked')
         }

@@ -9,10 +9,6 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(clients.claim());
 });
 
-self.addEventListener('fetch', (event) => {
-    // Basic fetch listener para PWA installation criteria
-});
-
 self.addEventListener('push', (event) => {
     let data = { title: 'AutoCar', body: 'Você tem uma nova notificação.', icon: '/favicon.ico', url: '/' };
 
