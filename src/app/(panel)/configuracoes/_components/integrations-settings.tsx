@@ -4,14 +4,16 @@ import { useEffect, useState } from "react"
 import { Plug, Key, CalendarClock, CloudLightning, Check, Loader2, AlertCircle, Download } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { getEvolutionCredentials } from "../actions"
+import { toast } from "react-hot-toast"
 
 export function IntegrationsSettings() {
     const supabase = createClient()
     const [gcalStatus, setGcalStatus] = useState<'checking' | 'linked' | 'unlinked'>('checking')
     const [isImportingHolidays, setIsImportingHolidays] = useState(false)
     const [holidayMessage, setHolidayMessage] = useState('')
-    const [evoCreds, setEvoCreds] = useState({ url: '', key: '' })
+    const [evoCreds, setEvoCreds] = useState({ url: '', key: '', instanceName: '', appUrl: '' })
     const [loadingEvo, setLoadingEvo] = useState(true)
+    const [isTestingEvo, setIsTestingEvo] = useState(false)
 
     useEffect(() => {
         async function checkGCalStatus() {
@@ -73,6 +75,36 @@ export function IntegrationsSettings() {
         setIsImportingHolidays(false)
     }
 
+    const handleTestEvolution = async () => {
+        if (!evoCreds.url || !evoCreds.instanceName) {
+            toast.error('Credenciais Evolution ausentes. Verifique o .env')
+            return
+        }
+        setIsTestingEvo(true)
+        const toastId = toast.loading('Testando conexão com Evolution API...')
+        try {
+            // Formatar URL para retirar barra no final se houver
+            const formattedUrl = evoCreds.url.replace(/\/$/, '')
+            const res = await fetch(`${formattedUrl}/instance/connectionState/${evoCreds.instanceName}`, {
+                headers: {
+                    'apikey': evoCreds.key
+                }
+            })
+            if (res.ok) {
+                const data = await res.json()
+                // Pega state da resposta da Evolution v1 ou v2
+                const state = data?.instance?.state || data?.state || 'conectado'
+                toast.success(`Conexão OK! Status: ${state}`, { id: toastId })
+            } else {
+                toast.error(`Falha ao conectar. Status HTTP: ${res.status}`, { id: toastId })
+            }
+        } catch (error) {
+            toast.error('Erro de rede ou URL inválida.', { id: toastId })
+        } finally {
+            setIsTestingEvo(false)
+        }
+    }
+
     return (
         <div className="space-y-8 animate-fade-in">
             <div>
@@ -110,7 +142,19 @@ export function IntegrationsSettings() {
                             </div>
                         </div>
 
-                        <button className="w-full mt-2 py-2 bg-white/5 hover:bg-[#25D366]/20 border border-white/10 hover:border-[#25D366]/50 text-white hover:text-[#25D366] rounded-xl font-medium transition-all text-sm">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-white/60 tracking-wide uppercase">Webhook de Retorno (Fallback)</label>
+                            <div className="relative">
+                                {loadingEvo && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 animate-spin" />}
+                                <input type="url" value={evoCreds.appUrl ? `${evoCreds.appUrl.replace(/\/$/, '')}/api/webhook/evolution` : ''} readOnly placeholder="URL de Webhook" className="w-full bg-black/40 border border-[#25D366]/30 rounded-lg px-3 py-2 text-[#25D366] text-sm focus:border-[#25D366]/50 outline-none font-mono opacity-80 cursor-not-allowed" />
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleTestEvolution}
+                            disabled={isTestingEvo || loadingEvo}
+                            className="w-full mt-2 py-2 bg-white/5 hover:bg-[#25D366]/20 border border-white/10 hover:border-[#25D366]/50 text-white hover:text-[#25D366] rounded-xl font-medium transition-all text-sm disabled:opacity-50 flex justify-center items-center gap-2">
+                            {isTestingEvo && <Loader2 className="w-4 h-4 animate-spin" />}
                             Testar Conexão
                         </button>
                     </div>

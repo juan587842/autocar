@@ -1,8 +1,15 @@
 "use client"
 
 import { Palette, UploadCloud, MonitorSmartphone } from "lucide-react"
+import { useSettingsStore } from "@/store/useSettingsStore"
 
 export function VisualSettings() {
+    const { settings, updateSetting, isLoading } = useSettingsStore()
+
+    if (isLoading) {
+        return <div className="animate-pulse flex space-x-4"><div className="flex-1 space-y-6 py-1"><div className="h-2 bg-white/10 rounded"></div><div className="space-y-3"><div className="grid grid-cols-3 gap-4"><div className="h-2 bg-white/10 rounded col-span-2"></div><div className="h-2 bg-white/10 rounded col-span-1"></div></div><div className="h-2 bg-white/10 rounded"></div></div></div></div>
+    }
+
     return (
         <div className="space-y-8 animate-fade-in">
             <div>
@@ -47,8 +54,8 @@ export function VisualSettings() {
                             <div className="space-y-2">
                                 <label className="text-xs text-white/60 uppercase tracking-wider font-semibold">Cor Primária (HEX)</label>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-[#ef4444] border-2 border-white/20 shadow-lg shrink-0" />
-                                    <input type="text" defaultValue="#EF4444" className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-red-500 outline-none" />
+                                    <div className="w-10 h-10 rounded-lg border-2 border-white/20 shadow-lg shrink-0" style={{ backgroundColor: settings.primary_color || '#EF4444' }} />
+                                    <input type="text" value={settings.primary_color || ""} onChange={(e) => updateSetting("primary_color", e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-red-500 outline-none" />
                                 </div>
                             </div>
 

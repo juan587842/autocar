@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { toast } from "react-hot-toast"
 import { Building2, Palette, Smartphone, Plug, Bot, Settings, Save, Clock, Users, Image as ImageIcon, Wallet, Grip } from "lucide-react"
 
 import { GeneralSettings } from "./_components/general-settings"
@@ -13,6 +14,7 @@ import { TeamSettings } from "./_components/team-settings"
 import { WatermarkSettings } from "./_components/watermark-settings"
 import { CommissionSettings } from "./_components/commission-settings"
 import { CategorySettings } from "./_components/category-settings"
+import { useSettingsStore } from "@/store/useSettingsStore"
 
 const sidebarNavItems = [
     {
@@ -79,6 +81,21 @@ const sidebarNavItems = [
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState(sidebarNavItems[0].id)
+    const { fetchSettings, saveSettings, isSaving, isLoading } = useSettingsStore()
+
+    useEffect(() => {
+        fetchSettings()
+    }, [fetchSettings])
+
+    const handleSaveAll = async () => {
+        const toastId = toast.loading("Salvando configurações...")
+        const result = await saveSettings()
+        if (result.success) {
+            toast.success("Configurações salvas com sucesso!", { id: toastId })
+        } else {
+            toast.error("Erro ao salvar: " + (result.error || "Desconhecido"), { id: toastId })
+        }
+    }
 
     const CurrentComponent = sidebarNavItems.find(item => item.id === activeTab)?.component || <GeneralSettings />
 
@@ -95,9 +112,12 @@ export default function SettingsPage() {
                     <p className="text-white/60 mt-1">Gerencie a identidade, robôs e integrações do AutoCar.</p>
                 </div>
 
-                <button className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 rounded-full font-medium text-white transition-all shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_25px_rgba(220,38,38,0.5)] transform hover:-translate-y-0.5 whitespace-nowrap">
+                <button
+                    onClick={handleSaveAll}
+                    disabled={isSaving || isLoading}
+                    className="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 rounded-full font-medium text-white transition-all shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_25px_rgba(220,38,38,0.5)] transform hover:-translate-y-0.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
                     <Save className="w-5 h-5" />
-                    Salvar Tudo
+                    {isSaving ? "Salvando..." : "Salvar Tudo"}
                 </button>
             </div>
 

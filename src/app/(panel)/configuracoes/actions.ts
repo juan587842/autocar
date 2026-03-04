@@ -12,6 +12,8 @@ export async function getEvolutionCredentials() {
 
     return {
         url: process.env.EVOLUTION_API_URL || '',
-        key: process.env.EVOLUTION_API_KEY || ''
+        key: process.env.EVOLUTION_API_KEY || '',
+        instanceName: process.env.EVOLUTION_INSTANCE_NAME || '',
+        appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://autocar.juanpaulo.com.br'
     }
 }

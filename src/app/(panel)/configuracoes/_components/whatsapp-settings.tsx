@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Smartphone, QrCode, RefreshCcw, Signal, CheckCircle2, Loader2, WifiOff, AlertTriangle } from "lucide-react"
+import { useSettingsStore } from "@/store/useSettingsStore"
 
 type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error'
 
@@ -11,18 +12,11 @@ export function WhatsappSettings() {
     const [phoneNumber, setPhoneNumber] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [instanceName, setInstanceName] = useState('autocar')
-
-    useEffect(() => {
-        const stored = localStorage.getItem('evolution_instance_name')
-        if (stored) {
-            setInstanceName(stored)
-        }
-    }, [])
+    const { settings, updateSetting } = useSettingsStore()
+    const instanceName = settings.whatsapp_instance_name || 'autocar'
 
     const handleInstanceNameChange = (val: string) => {
-        setInstanceName(val)
-        localStorage.setItem('evolution_instance_name', val)
+        updateSetting("whatsapp_instance_name", val)
     }
 
     // Helper de chamada à API interna

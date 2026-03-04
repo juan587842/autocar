@@ -1,8 +1,15 @@
 "use client"
 
 import { Bot, Sparkles, Database, KeyRound, Cpu } from "lucide-react"
+import { useSettingsStore } from "@/store/useSettingsStore"
 
 export function AiSettings() {
+    const { settings, updateSetting, isLoading } = useSettingsStore()
+
+    if (isLoading) {
+        return <div className="animate-pulse flex space-x-4"><div className="flex-1 space-y-6 py-1"><div className="h-2 bg-white/10 rounded"></div><div className="space-y-3"><div className="grid grid-cols-3 gap-4"><div className="h-2 bg-white/10 rounded col-span-2"></div><div className="h-2 bg-white/10 rounded col-span-1"></div></div><div className="h-2 bg-white/10 rounded"></div></div></div></div>
+    }
+
     return (
         <div className="space-y-8 animate-fade-in">
             <div>
@@ -23,9 +30,15 @@ export function AiSettings() {
                             <Cpu className="w-4 h-4 text-purple-400" /> Modelo Padrão de IA
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            {["GPT-4o Mini", "GPT-4o", "Gemini 2.5 Flash"].map((model, i) => (
+                            {["GPT-4o Mini", "GPT-4o", "Gemini 2.5 Flash"].map((model) => (
                                 <label key={model} className="cursor-pointer group">
-                                    <input type="radio" name="llm_model" defaultChecked={i === 0} className="peer sr-only" />
+                                    <input
+                                        type="radio"
+                                        name="llm_model"
+                                        checked={settings.ai_default_model === model}
+                                        onChange={() => updateSetting("ai_default_model", model)}
+                                        className="peer sr-only"
+                                    />
                                     <div className="px-4 py-3 rounded-xl border border-white/10 bg-black/20 text-white/60 text-sm font-medium transition-all group-hover:bg-white/5 peer-checked:bg-purple-500/20 peer-checked:border-purple-500/50 peer-checked:text-purple-300 text-center">
                                         {model}
                                     </div>
@@ -62,9 +75,14 @@ export function AiSettings() {
                             <p className="text-white font-medium text-sm">Resumo Automático de Chats</p>
                             <p className="text-white/50 text-xs mt-0.5">IA lê e resume conversas do WhatsApp no CRM.</p>
                         </div>
-                        {/* Toggle Switch Fake */}
-                        <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-red-500">
-                            <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6" />
+                        <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.ai_enable_stock_check ? 'bg-red-500' : 'bg-white/20'}`}>
+                            <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={settings.ai_enable_stock_check || false}
+                                onChange={(e) => updateSetting("ai_enable_stock_check", e.target.checked)}
+                            />
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.ai_enable_stock_check ? 'translate-x-6' : 'translate-x-1'}`} />
                         </div>
                     </label>
 
@@ -73,9 +91,14 @@ export function AiSettings() {
                             <p className="text-white font-medium text-sm">Agendamento Contextual</p>
                             <p className="text-white/50 text-xs mt-0.5">Permite a IA sugerir dias baseados na sua agenda do Google.</p>
                         </div>
-                        {/* Toggle Switch Fake */}
-                        <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-red-500">
-                            <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6" />
+                        <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.ai_enable_scheduling ? 'bg-red-500' : 'bg-white/20'}`}>
+                            <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={settings.ai_enable_scheduling || false}
+                                onChange={(e) => updateSetting("ai_enable_scheduling", e.target.checked)}
+                            />
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.ai_enable_scheduling ? 'translate-x-6' : 'translate-x-1'}`} />
                         </div>
                     </label>
 

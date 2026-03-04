@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Clock, CalendarOff, Plus, Trash2, Sun, Moon } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { useSettingsStore } from "@/store/useSettingsStore"
 
 const WEEK_DAYS = [
     { key: 'monday', label: 'Segunda-feira' },
@@ -35,22 +36,19 @@ type Holiday = {
 
 export function AvailabilitySettings() {
     const supabase = createClient()
-    const [hours, setHours] = useState(DEFAULT_HOURS)
+    const { settings, updateSetting } = useSettingsStore()
+
+    // Fallback para assegurar que sempre tenhamos um objeto de horas válido
+    const hours = settings.business_hours || DEFAULT_HOURS
+
     const [holidays, setHolidays] = useState<Holiday[]>([])
     const [showNewHoliday, setShowNewHoliday] = useState(false)
     const [newHolidayName, setNewHolidayName] = useState('')
     const [newHolidayDate, setNewHolidayDate] = useState('')
     const [newHolidayRecurring, setNewHolidayRecurring] = useState(false)
-    const [saving, setSaving] = useState(false)
-    const [saved, setSaved] = useState(false)
 
     useEffect(() => {
         const load = async () => {
-            // Load business hours from store_settings
-            const { data: settings } = await supabase.from('store_settings').select('business_hours').limit(1).single()
-            if (settings?.business_hours) {
-                setHours({ ...DEFAULT_HOURS, ...settings.business_hours })
-            }
 
             // Load holidays
             const { data: h } = await supabase.from('holidays').select('*').order('date', { ascending: true })
@@ -60,25 +58,17 @@ export function AvailabilitySettings() {
     }, [supabase])
 
     const toggleDay = (dayKey: string) => {
-        setHours(prev => ({
-            ...prev,
-            [dayKey]: { ...prev[dayKey], enabled: !prev[dayKey].enabled }
-        }))
+        updateSetting("business_hours", {
+            ...hours,
+            [dayKey]: { ...hours[dayKey], enabled: !hours[dayKey].enabled }
+        })
     }
 
     const changeTime = (dayKey: string, field: 'open' | 'close', value: string) => {
-        setHours(prev => ({
-            ...prev,
-            [dayKey]: { ...prev[dayKey], [field]: value }
-        }))
-    }
-
-    const saveHours = async () => {
-        setSaving(true)
-        await supabase.from('store_settings').update({ business_hours: hours }).not('id', 'is', null)
-        setSaving(false)
-        setSaved(true)
-        setTimeout(() => setSaved(false), 2000)
+        updateSetting("business_hours", {
+            ...hours,
+            [dayKey]: { ...hours[dayKey], [field]: value }
+        })
     }
 
     const addHoliday = async () => {
@@ -160,14 +150,6 @@ export function AvailabilitySettings() {
                         )
                     })}
                 </div>
-
-                <button
-                    onClick={saveHours}
-                    disabled={saving}
-                    className="mt-6 w-full py-2.5 bg-[#FF4D00] hover:bg-[#FF4D00]/90 rounded-xl text-white font-bold transition-all text-sm disabled:opacity-50 relative z-10"
-                >
-                    {saving ? 'Salvando...' : saved ? '✓ Salvo!' : 'Salvar Horários'}
-                </button>
             </div>
 
             {/* ===== FERIADOS / DIAS FECHADOS ===== */}

@@ -1,8 +1,15 @@
 "use client"
 
 import { Building2, Mail, MapPin, Phone } from "lucide-react"
+import { useSettingsStore } from "@/store/useSettingsStore"
 
 export function GeneralSettings() {
+    const { settings, updateSetting, isLoading } = useSettingsStore()
+
+    if (isLoading) {
+        return <div className="animate-pulse flex space-x-4"><div className="flex-1 space-y-6 py-1"><div className="h-2 bg-white/10 rounded"></div><div className="space-y-3"><div className="grid grid-cols-3 gap-4"><div className="h-2 bg-white/10 rounded col-span-2"></div><div className="h-2 bg-white/10 rounded col-span-1"></div></div><div className="h-2 bg-white/10 rounded"></div></div></div></div>
+    }
+
     return (
         <div className="space-y-6 animate-fade-in">
             <div>
@@ -18,7 +25,8 @@ export function GeneralSettings() {
                         <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                         <input
                             type="text"
-                            defaultValue="AutoCar Veículos Premium"
+                            value={settings.name || ""}
+                            onChange={(e) => updateSetting("name", e.target.value)}
                             className="w-full pl-12 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white placeholder:text-white/40 font-medium"
                         />
                     </div>
@@ -29,7 +37,8 @@ export function GeneralSettings() {
                     <label className="text-sm font-medium text-white/80">CNPJ</label>
                     <input
                         type="text"
-                        defaultValue="00.000.000/0001-00"
+                        value={settings.cnpj || ""}
+                        onChange={(e) => updateSetting("cnpj", e.target.value)}
                         className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white placeholder:text-white/40 font-medium"
                     />
                 </div>
@@ -41,7 +50,8 @@ export function GeneralSettings() {
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                         <input
                             type="email"
-                            defaultValue="contato@autocarpremium.com.br"
+                            value={settings.email || ""}
+                            onChange={(e) => updateSetting("email", e.target.value)}
                             className="w-full pl-12 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white placeholder:text-white/40 font-medium"
                         />
                     </div>
@@ -54,7 +64,8 @@ export function GeneralSettings() {
                         <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                         <input
                             type="text"
-                            defaultValue="(11) 99999-0000"
+                            value={settings.phone || ""}
+                            onChange={(e) => updateSetting("phone", e.target.value)}
                             className="w-full pl-12 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white placeholder:text-white/40 font-medium"
                         />
                     </div>
@@ -67,7 +78,8 @@ export function GeneralSettings() {
                         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                         <input
                             type="text"
-                            defaultValue="Av. Europa, 1200 - Jardins, São Paulo - SP, 01449-000"
+                            value={settings.address_street || ""}
+                            onChange={(e) => updateSetting("address_street", e.target.value)}
                             className="w-full pl-12 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white font-medium"
                         />
                     </div>
@@ -78,7 +90,8 @@ export function GeneralSettings() {
                     <label className="text-sm font-medium text-white/80">Descrição Curta (SEO & Sobre)</label>
                     <textarea
                         rows={4}
-                        defaultValue="Especialistas em esportivos luxuosos. Carros periciados e as melhores taxas de financiamento."
+                        value={settings.description || ""}
+                        onChange={(e) => updateSetting("description", e.target.value)}
                         className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/50 text-white placeholder:text-white/40 resize-none font-medium text-sm"
                     />
                 </div>
