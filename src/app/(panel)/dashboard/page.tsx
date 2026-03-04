@@ -84,15 +84,10 @@ export default async function DashboardPage() {
     const totalLeads = customersCount || 0
     const totalOffers = offersCount || 0
 
-    // Mapeando leads do banco ou fallback mock
+    // Mapeando leads do banco
     const mapLeadsToQuickList = (customers: any[]) => {
         if (!customers || customers.length === 0) {
-            return [
-                { id: '1', title: 'Carlos Silva', subtitle: 'Interesse: Tracker 2022', badge: 'Lead Quente', badgeColor: 'red' as const, time: '10 min atrás' },
-                { id: '2', title: 'Ana Oliveira', subtitle: 'Interesse: Corolla Cross', badge: 'Quer SUV', badgeColor: 'green' as const, time: '2h atrás' },
-                { id: '3', title: 'Marcos Paulo', subtitle: 'Contato Inicial', badge: 'Lead Frio', badgeColor: 'blue' as const, time: 'Ontem' },
-                { id: '4', title: 'Juliana Costa', subtitle: 'Proposta enviada', badge: 'Negociação', badgeColor: 'orange' as const, time: 'Ontem' },
-            ]
+            return []
         }
         return customers.map(c => {
             const firstTag = c.customer_tag_links?.[0]?.customer_tags
@@ -123,7 +118,7 @@ export default async function DashboardPage() {
         dbFollowUps.push({ id: 'empty', title: 'Tudo Limpo!', subtitle: 'Sem follow-ups pendentes para hoje.', action: '', time: '', icon: CalendarCheck })
     }
 
-    const statMocks = [
+    const dashboardStats = [
         { title: 'Total em Estoque', value: totalVehicles.toString(), icon: Car, trend: { value: 5, isPositive: true }, desc: 'Total cadastrado' },
         { title: 'Total de Clientes', value: totalLeads.toString(), icon: Users, trend: { value: 12, isPositive: true }, desc: 'Na base CRM' },
         { title: 'Ofertas Recebidas', value: totalOffers.toString(), icon: TrendingUp, trend: { value: 2, isPositive: false }, desc: 'Pelo formulário site' },
@@ -144,7 +139,7 @@ export default async function DashboardPage() {
 
             {/* Top Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {statMocks.map((stat, i) => (
+                {dashboardStats.map((stat, i) => (
                     <StatCard
                         key={i}
                         title={stat.title}

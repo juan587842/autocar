@@ -1,14 +1,23 @@
 "use client"
 
-import { Tag, MessageSquare, StickyNote } from "lucide-react"
-
-// Mocks simulando tags disponíveis configuráveis pela loja
-const mockTags = [
-    "Lead Quente", "Lead Frio", "SUV", "Sedan", "Hatch",
-    "Financiamento", "Troca", "Investidor", "Família"
-]
+import { useState, useEffect } from "react"
+import { Tag, MessageSquare, StickyNote, Loader2 } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
 
 export function CustomerCategoryForm() {
+    const [availableTags, setAvailableTags] = useState<{ id: string, name: string }[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+
+    useEffect(() => {
+        async function fetchTags() {
+            const supabase = createClient()
+            const { data } = await supabase.from('customer_tags').select('id, name').order('name')
+            if (data) setAvailableTags(data)
+            setIsLoading(false)
+        }
+        fetchTags()
+    }, [])
+
     return (
         <div className="space-y-8">
 
@@ -37,14 +46,22 @@ export function CustomerCategoryForm() {
                     <Tag className="w-4 h-4" /> Selecione as Tags de Perfil
                 </label>
                 <div className="flex flex-wrap gap-2">
-                    {mockTags.map((tag) => (
-                        <label key={tag} className="cursor-pointer">
-                            <input type="checkbox" className="peer sr-only" />
-                            <div className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/60 text-sm transition-all hover:bg-white/10 hover:text-white peer-checked:bg-white peer-checked:text-black font-medium">
-                                {tag}
-                            </div>
-                        </label>
-                    ))}
+                    {isLoading ? (
+                        <div className="flex items-center gap-2 text-white/40 text-sm">
+                            <Loader2 className="w-4 h-4 animate-spin" /> Carregando tags...
+                        </div>
+                    ) : availableTags.length === 0 ? (
+                        <p className="text-white/40 text-sm italic">Nenhuma tag cadastrada na loja ainda.</p>
+                    ) : (
+                        availableTags.map((tag) => (
+                            <label key={tag.id} className="cursor-pointer">
+                                <input type="checkbox" className="peer sr-only" value={tag.id} />
+                                <div className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/60 text-sm transition-all hover:bg-white/10 hover:text-white peer-checked:bg-white peer-checked:text-black font-medium">
+                                    {tag.name}
+                                </div>
+                            </label>
+                        ))
+                    )}
                 </div>
                 <p className="text-xs text-white/40 mt-2">
                     Tags ajudam a filtrar e encontrar clientes para campanhas de marketing futuras.

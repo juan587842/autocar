@@ -33,7 +33,7 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
         .select('id, messages(id, content, sender_type, created_at)')
         .eq('customer_id', id)
 
-    // Agrupando e ordenando histórico (Mock Adapter)
+    // Agrupando e ordenando histórico (Timeline Adapter)
     const historyEvents: any[] = []
 
     if (appointments) {

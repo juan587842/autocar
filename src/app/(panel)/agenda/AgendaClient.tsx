@@ -10,10 +10,8 @@ import { ptBR } from "date-fns/locale"
 
 type ViewType = 'month' | 'week' | 'day'
 
-// Dados Mockados de Feriados (Holidays) - Fallback ou Mocks
-const mockHolidays = [
-    { date: new Date(2026, 2, 25), title: "Feriado Municipal" } // Mês 2 = Março
-]
+// Dados de Feriados (Holidays) - Vazio por padrão
+const mockHolidays: { date: Date, title: string }[] = []
 
 // Helpers de Cores Baseados no Status
 const getStatusColors = (status: string) => {
@@ -53,7 +51,7 @@ const getStatusLabel = (status: string) => {
 const workingHours = Array.from({ length: 11 }, (_, i) => i + 8)
 
 export default function AgendaClient({ initialAppointments = [] }: { initialAppointments: any[] }) {
-    const [currentDate, setCurrentDate] = useState(new Date(2026, 2, 1)) // Forçando Março 2026 para os mocks funcionarem com a demo
+    const [currentDate, setCurrentDate] = useState(new Date()) // Usa a data atual real
     const [view, setView] = useState<ViewType>('month')
     const [selectedAppointment, setSelectedAppointment] = useState<any | null>(null)
     const [mounted, setMounted] = useState(false)
@@ -75,7 +73,7 @@ export default function AgendaClient({ initialAppointments = [] }: { initialAppo
                 customer: app.customers?.full_name || "Desconhecido",
                 phone: app.customers?.phone || "Não informado",
                 vehicle: app.vehicles ? `${app.vehicles.brand} ${app.vehicles.model}` : "Não informado",
-                seller: "João Paulo", // hardcoded seller for mock
+                seller: app.users?.full_name || "Vendedor", // Pega nome do vendedor associado do DB
                 status: app.status || "scheduled",
                 duration: `${app.duration_min || 30} min`,
                 notes: app.notes || "Sem observações",

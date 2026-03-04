@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { Car, ShieldCheck, Zap, Plus, Trash2, Settings2 } from 'lucide-react'
 
-// --- MOCKS DE OPCIONAIS ---
+// --- LISTA PADRÃO DE OPCIONAIS ---
 const optionalItems = [
     { id: 'ar_condicionado', label: 'Ar Condicionado' },
     { id: 'direcao_hidraulica', label: 'Direção Hidráulica' },
@@ -18,7 +18,7 @@ const optionalItems = [
     { id: 'airbags', label: 'Airbags Duplo / Lateral' },
     { id: 'freios_abs', label: 'Freios ABS' },
 ]
-// --- FIM MOCKS ---
+// --- FIM DA LISTA PADRÃO ---
 
 export function VehicleExtrasForm() {
     const [customFields, setCustomFields] = useState<{ id: string; label: string; value: string }[]>([])
