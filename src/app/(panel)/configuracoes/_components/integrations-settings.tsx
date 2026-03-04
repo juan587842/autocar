@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Plug, Key, CalendarClock, CloudLightning, Check, Loader2, AlertCircle, Download } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-import { getEvolutionCredentials } from "../actions"
+import { getEvolutionCredentials, testEvolutionConnection } from "../actions"
 import { toast } from "react-hot-toast"
 
 export function IntegrationsSettings() {
@@ -67,8 +67,13 @@ export function IntegrationsSettings() {
         setHolidayMessage('')
         try {
             const res = await fetch('/api/holidays', { method: 'POST' })
-            const data = await res.json()
-            setHolidayMessage(data.message || data.error || 'Concluído')
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                setHolidayMessage(errData.error || `Erro HTTP ${res.status}`);
+            } else {
+                const data = await res.json()
+                setHolidayMessage(data.message || data.error || 'Concluído')
+            }
         } catch {
             setHolidayMessage('Erro de rede ao importar feriados.')
         }
@@ -83,23 +88,14 @@ export function IntegrationsSettings() {
         setIsTestingEvo(true)
         const toastId = toast.loading('Testando conexão com Evolution API...')
         try {
-            // Formatar URL para retirar barra no final se houver
-            const formattedUrl = evoCreds.url.replace(/\/$/, '')
-            const res = await fetch(`${formattedUrl}/instance/connectionState/${evoCreds.instanceName}`, {
-                headers: {
-                    'apikey': evoCreds.key
-                }
-            })
-            if (res.ok) {
-                const data = await res.json()
-                // Pega state da resposta da Evolution v1 ou v2
-                const state = data?.instance?.state || data?.state || 'conectado'
-                toast.success(`Conexão OK! Status: ${state}`, { id: toastId })
+            const result = await testEvolutionConnection()
+            if (result.success) {
+                toast.success(`Conexão OK! Status: ${result.state}`, { id: toastId })
             } else {
-                toast.error(`Falha ao conectar. Status HTTP: ${res.status}`, { id: toastId })
+                toast.error(result.error || 'Falha ao conectar.', { id: toastId })
             }
         } catch (error) {
-            toast.error('Erro de rede ou URL inválida.', { id: toastId })
+            toast.error('Erro de rede ao conectar com a API.', { id: toastId })
         } finally {
             setIsTestingEvo(false)
         }
