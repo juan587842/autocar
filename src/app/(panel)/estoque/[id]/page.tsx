@@ -11,7 +11,7 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
 
     const { data: vehicle, error } = await supabase
         .from('vehicles')
-        .select('*')
+        .select('*, vehicle_photos(url, is_cover, display_order)')
         .eq('id', id)
         .single()
 
@@ -20,7 +20,14 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
     }
 
     const v = vehicle
-    const imageUrl = 'https://images.unsplash.com/photo-1590362891991-f20bc081e537?q=80&w=2670&auto=format&fit=crop'
+
+    // Sort and get cover photo, fallback to first photo, then fallback to mock image.
+    const sortedPhotos = v.vehicle_photos ? [...v.vehicle_photos].sort((a, b) => {
+        if (a.is_cover) return -1
+        if (b.is_cover) return 1
+        return a.display_order - b.display_order
+    }) : []
+    const imageUrl = sortedPhotos.length > 0 ? sortedPhotos[0].url : 'https://images.unsplash.com/photo-1590362891991-f20bc081e537?q=80&w=2670&auto=format&fit=crop'
 
     const statusColor = v.status?.toLowerCase() === 'vendido'
         ? 'text-blue-400 bg-blue-400/10 border-blue-400/20'

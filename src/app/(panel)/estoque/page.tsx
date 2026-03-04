@@ -4,10 +4,10 @@ import InventoryClient from './InventoryClient'
 export default async function InventoryPage() {
     const supabase = await createClient()
 
-    // Fetch vehicles from Supabase (Supõe existência da tabela 'vehicles')
+    // Fetch vehicles from Supabase with photos included
     const { data: vehiclesData, error } = await supabase
         .from('vehicles')
-        .select('*')
+        .select('*, vehicle_photos(url, is_cover, display_order)')
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
 

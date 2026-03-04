@@ -44,6 +44,14 @@ export default function InventoryClient({ initialVehicles = [] }: { initialVehic
         if (['vendido', 'sold'].includes(lowerStatus)) mappedColor = 'vendido'
         if (['reservado', 'reserved'].includes(lowerStatus)) mappedColor = 'reservado'
 
+        // Try to find the cover photo first, then fallback to the first photo, then other fields
+        const sortedPhotos = car.vehicle_photos ? [...car.vehicle_photos].sort((a: any, b: any) => {
+            if (a.is_cover) return -1
+            if (b.is_cover) return 1
+            return (a.display_order || 0) - (b.display_order || 0)
+        }) : []
+        const mappedImage = sortedPhotos.length > 0 ? sortedPhotos[0].url : (car.image || car.thumbnail_url || car.photos?.[0] || null)
+
         return {
             id: car.id,
             brand: car.brand || 'Marca',
@@ -53,7 +61,7 @@ export default function InventoryClient({ initialVehicles = [] }: { initialVehic
             price: car.price ? (typeof car.price === 'number' ? `R$ ${car.price.toLocaleString('pt-BR')}` : car.price) : 'R$ ----',
             status: getTranslatedStatus(car.status),
             statusColor: car.statusColor || mappedColor,
-            image: car.image || car.thumbnail_url || car.photos?.[0] || null,
+            image: mappedImage,
             shortId: isDB ? car.id.substring(0, 5).toUpperCase() : car.id.toString().padStart(5, '0')
         }
     }

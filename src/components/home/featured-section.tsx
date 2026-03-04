@@ -73,7 +73,7 @@ export function FeaturedSection({ vehicles }: { vehicles: Vehicle[] }) {
                                 color={vehicle.color || ''}
                                 transmission={vehicle.transmission || ''}
                                 fuel={vehicle.fuel || ''}
-                                imageUrl={vehicle.vehicle_photos.find(p => p.is_cover)?.url || vehicle.vehicle_photos[0]?.url}
+                                imageUrl={vehicle.vehicle_photos?.find(p => p.is_cover)?.url || vehicle.vehicle_photos?.[0]?.url}
                                 status={vehicle.status}
                                 category={vehicle.vehicle_categories?.name}
                             />
