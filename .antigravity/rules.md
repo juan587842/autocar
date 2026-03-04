@@ -111,5 +111,13 @@ async function operation() {
 }
 ```
 
+## Environment & Testing Target
+
+**CRITICAL DIRECTIVE FROM AIOS-MASTER:**
+As of March 2026, the primary target for all testing, integrations (including Evolution API), and QA validation for this project is the live VPS environment:
+**URL:** `https://autocar.juanpaulo.com.br`
+
+All agents (@dev, @qa, @devops, etc.) must consider this URL as the source of truth for external tests and webhooks unless explicitly instructed otherwise by the user.
+
 ---
 *Synkra AIOS AntiGravity Configuration v1.0*

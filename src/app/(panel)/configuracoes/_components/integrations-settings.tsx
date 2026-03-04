@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react"
 import { Plug, Key, CalendarClock, CloudLightning, Check, Loader2, AlertCircle, Download } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { getEvolutionCredentials } from "../actions"
 
 export function IntegrationsSettings() {
     const supabase = createClient()
     const [gcalStatus, setGcalStatus] = useState<'checking' | 'linked' | 'unlinked'>('checking')
     const [isImportingHolidays, setIsImportingHolidays] = useState(false)
     const [holidayMessage, setHolidayMessage] = useState('')
+    const [evoCreds, setEvoCreds] = useState({ url: '', key: '' })
+    const [loadingEvo, setLoadingEvo] = useState(true)
 
     useEffect(() => {
         async function checkGCalStatus() {
@@ -24,7 +27,20 @@ export function IntegrationsSettings() {
 
             setGcalStatus(data?.is_active ? 'linked' : 'unlinked')
         }
+
+        async function fetchEvo() {
+            try {
+                const creds = await getEvolutionCredentials()
+                setEvoCreds(creds)
+            } catch (err) {
+                console.error("Failed to fetch Evo credentials", err)
+            } finally {
+                setLoadingEvo(false)
+            }
+        }
+
         checkGCalStatus()
+        fetchEvo()
     }, [supabase])
 
     const handleGoogleAuth = () => {
@@ -80,13 +96,17 @@ export function IntegrationsSettings() {
                     <div className="space-y-4 relative z-10">
                         <div className="space-y-1.5">
                             <label className="text-xs font-semibold text-white/60 tracking-wide uppercase">Server URL</label>
-                            <input type="url" defaultValue="https://evo.minhaempresa.com" className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-[#25D366]/50 outline-none" />
+                            <div className="relative">
+                                {loadingEvo && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 animate-spin" />}
+                                <input type="url" value={evoCreds.url || ''} readOnly placeholder="URL da Evolution API" className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:border-[#25D366]/50 outline-none opacity-70 cursor-not-allowed" />
+                            </div>
                         </div>
                         <div className="space-y-1.5">
                             <label className="text-xs font-semibold text-white/60 tracking-wide uppercase">Global API Key</label>
                             <div className="relative">
                                 <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                                <input type="password" defaultValue="429683C4C977415EB2C3dfg245" className="w-full bg-black/40 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-white text-sm focus:border-[#25D366]/50 outline-none font-mono" />
+                                {loadingEvo && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 animate-spin" />}
+                                <input type="password" value={evoCreds.key || ''} readOnly placeholder="Sua Global API Key" className="w-full bg-black/40 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-white text-sm focus:border-[#25D366]/50 outline-none font-mono opacity-70 cursor-not-allowed" />
                             </div>
                         </div>
 
