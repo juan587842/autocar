@@ -77,6 +77,7 @@ docs/
 - Reference story ID in commits: `feat: implement IDE detection [Story 2.1]`
 - Ensure GitHub CLI is configured: `gh auth status`
 - Push regularly to avoid conflicts
+- **AUTOMATED SYNC REQUIREMENT**: Whenever an agent performs ANY system modification (code changes, configuration updates, or fixing bugs), the session MUST conclude with an automatic `git add .`, `git commit` (with a descriptive message), and `git push` to keep the remote repository continuously synced with the local state. Agents should trigger this or call the @devops agent to do it automatically without waiting for user prompting.
 
 ## Common Patterns
 

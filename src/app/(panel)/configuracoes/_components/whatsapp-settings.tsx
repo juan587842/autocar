@@ -13,7 +13,7 @@ export function WhatsappSettings() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const { settings, updateSetting } = useSettingsStore()
-    const instanceName = settings.whatsapp_instance_name || 'autocar'
+    const instanceName = settings.whatsapp_instance_name ?? 'autocar'
 
     const handleInstanceNameChange = (val: string) => {
         updateSetting("whatsapp_instance_name", val)
@@ -56,8 +56,20 @@ export function WhatsappSettings() {
         setLoading(true)
         setError(null)
         try {
+            // 0. Verificar status atual da instância primeiro
+            const statusResult = await callEvolution('status')
+            const state = statusResult.data?.instance?.state || statusResult.data?.state
+
+            if (state === 'open' || state === 'connected') {
+                setConnectionState('connected')
+                setQrCode(null)
+                const jid = statusResult.data?.instance?.owner || statusResult.data?.instance?.jid
+                if (jid) setPhoneNumber(jid.split('@')[0].replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '+$1 $2 $3-$4'))
+                return // Já está conectado, finaliza aqui
+            }
+
             // 1. Criar instância se não existir
-            const createResult = await callEvolution('create')
+            await callEvolution('create')
 
             // 2. Pegar QR Code
             const qrResult = await callEvolution('qrcode')
@@ -113,16 +125,25 @@ export function WhatsappSettings() {
         }
     }
 
-    // Polling de status enquanto está conectando
+    // Polling de status enquanto está conectando e check on typing
     useEffect(() => {
-        // Check status on mount
-        fetchStatus()
+        // Check status on mount or when instanceName changes (with debounce)
+        const timeoutId = setTimeout(() => {
+            if (instanceName.trim()) {
+                fetchStatus()
+            }
+        }, 800)
 
         if (connectionState === 'connecting') {
             const interval = setInterval(fetchStatus, 5000)
-            return () => clearInterval(interval)
+            return () => {
+                clearTimeout(timeoutId)
+                clearInterval(interval)
+            }
         }
-    }, [connectionState, fetchStatus])
+
+        return () => clearTimeout(timeoutId)
+    }, [connectionState, fetchStatus, instanceName])
 
     // ==========================================
     // RENDER
