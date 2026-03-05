@@ -50,3 +50,20 @@ export async function softDeleteVehicle(id: string) {
     revalidatePath('/catalogo')
     return { success: true }
 }
+
+export async function updateVehicleStatus(id: string, newStatus: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase
+        .from('vehicles')
+        .update({ status: newStatus })
+        .eq('id', id)
+
+    if (error) {
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/estoque')
+    revalidatePath(`/estoque/${id}`)
+    return { success: true }
+}

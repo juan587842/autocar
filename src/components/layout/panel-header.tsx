@@ -46,7 +46,16 @@ export function PanelHeader() {
     }
 
     // Pega o último segmento da URL para o título (ex: /clientes -> Clientes)
-    const pageTitle = pathname.split('/').pop()?.replace(/-/g, ' ') || 'Dashboard'
+    let pageTitle = pathname.split('/').pop()?.replace(/-/g, ' ') || 'Dashboard'
+
+    // Se for um ID (UUID) na rota de estoque, muda o título
+    if (pathname.startsWith('/estoque/') && pathname.split('/').length === 3) {
+        const idSegment = pathname.split('/').pop()
+        // Se parece com um hash/UUID (tamanho > 20)
+        if (idSegment && idSegment.length > 20) {
+            pageTitle = 'Detalhes do Veículo'
+        }
+    }
 
     return (
         <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-x-4 border-b border-white/10 bg-[#0A0A0A]/80 backdrop-blur-3xl px-4 sm:gap-x-6 sm:px-6 lg:px-8">

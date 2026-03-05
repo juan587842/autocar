@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ArrowLeft, Edit3, Calendar, Fuel, Gauge, Settings2, Car, Tag } from "lucide-react"
 import VehicleImage from "@/components/ui/VehicleImage"
 import { AdGenerator } from "./AdGenerator"
+import { StatusBadgeToggle } from "./_components/status-badge-toggle"
 
 export default async function VehicleDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -28,12 +29,6 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
         return a.display_order - b.display_order
     }) : []
     const imageUrl = sortedPhotos.length > 0 ? sortedPhotos[0].url : 'https://images.unsplash.com/photo-1590362891991-f20bc081e537?q=80&w=2670&auto=format&fit=crop'
-
-    const statusColor = v.status?.toLowerCase() === 'vendido'
-        ? 'text-blue-400 bg-blue-400/10 border-blue-400/20'
-        : v.status?.toLowerCase() === 'reservado'
-            ? 'text-orange-400 bg-orange-400/10 border-orange-400/20'
-            : 'text-green-400 bg-green-400/10 border-green-400/20'
 
     return (
         <div className="space-y-6 animate-fade-in text-white pb-24">
@@ -74,9 +69,7 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
                             alt={`${v.brand} ${v.model}`}
                             className="w-full h-full object-cover"
                         />
-                        <span className={`absolute bottom-4 left-4 px-4 py-1.5 text-xs font-bold rounded-full border z-20 backdrop-blur-md ${statusColor}`}>
-                            {v.status || 'Disponível'}
-                        </span>
+                        <StatusBadgeToggle vehicleId={v.id} initialStatus={v.status || 'Disponível'} />
                     </div>
                 </div>
 
