@@ -81,7 +81,13 @@ export default function InventoryClient({ initialVehicles = [] }: { initialVehic
     const handleToggleStatus = async (e: React.MouseEvent, carId: string, currentStatus: string) => {
         e.preventDefault()
         e.stopPropagation()
-        const newStatus = currentStatus.toLowerCase() === 'disponível' ? 'Reservado' : 'Disponível'
+
+        let newStatus = 'Disponível'
+        const lower = currentStatus.toLowerCase()
+        if (lower === 'disponível' || lower === 'available') newStatus = 'Reservado'
+        else if (lower === 'reservado' || lower === 'reserved') newStatus = 'Vendido'
+        else if (lower === 'vendido' || lower === 'sold') newStatus = 'Disponível'
+
         await supabase.from('vehicles').update({ status: newStatus }).eq('id', carId)
         router.refresh()
     }
