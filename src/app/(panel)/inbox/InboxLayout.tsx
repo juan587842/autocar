@@ -87,14 +87,9 @@ export default function InboxLayout({ initialConversations, currentUser }: Inbox
             </div>
 
             {/* Coluna 3: Client Details (Drawer no mobile/tablet/lg) */}
-            {activeConversation && (
-                <div className={`
-                    absolute xl:static inset-y-0 right-0 z-50 
-                    h-full bg-[#0A0A0A]/95 backdrop-blur-2xl xl:bg-transparent xl:backdrop-blur-none
-                    transition-all duration-300 ease-in-out flex shrink-0 overflow-hidden
-                    ${showDetails ? 'translate-x-0 w-full sm:w-[380px]' : 'translate-x-full w-full sm:w-[380px] xl:translate-x-0 xl:w-0'}
-                `}>
-                    <div className="w-full sm:w-[380px] h-full shrink-0 border-l border-white/10">
+            {activeConversation && showDetails && (
+                <div className="absolute xl:hidden inset-y-0 right-0 z-50 h-full bg-[#0A0A0A]/95 backdrop-blur-2xl transition-all duration-300 ease-in-out flex shrink-0 overflow-hidden w-full sm:w-[380px] border-l border-white/10 animate-slide-left shadow-2xl">
+                    <div className="w-full h-full shrink-0">
                         <ClientDetails
                             conversation={activeConversation}
                             onClose={() => setShowDetails(false)}
