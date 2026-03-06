@@ -111,7 +111,7 @@ export default function ConversationList({
                         const isAiActive = conv.is_ai_active
                         const isWaiting = conv.status === 'waiting_human'
                         const profileUrl = conv.customer?.metadata?.profilePictureUrl || conv.metadata?.profilePictureUrl
-                        const fullName = conv.customer?.full_name || `+${conv.phone}`
+                        const fullName = conv.customer?.full_name || conv.metadata?.pushName || `+${conv.phone}`
 
                         return (
                             <button

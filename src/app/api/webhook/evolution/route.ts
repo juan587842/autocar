@@ -141,13 +141,15 @@ async function handleMessageReceived(data: any, supabase: any) {
                     customerId = newCustomer.id
                     console.log(`[Webhook] ✅ Novo cliente cadastrado: ${pushName} (${phone}) | ID: ${customerId}`)
 
-                    // 2.5 Buscar foto de perfil do WhatsApp assincronamente (não bloqueia a reposta)
                     fetchProfilePicture(phone).then(async (res) => {
                         const profileUrl = res?.data?.profilePictureUrl || res?.data?.picture
                         if (profileUrl) {
                             await supabase.from('customers').update({
                                 metadata: { profilePictureUrl: profileUrl }
                             }).eq('id', customerId)
+                            await supabase.from('conversations').update({
+                                metadata: { remoteJid: key.remoteJid, pushName, profilePictureUrl: profileUrl }
+                            }).eq('phone', phone)
                         }
                     }).catch(err => console.error('[Webhook] Erro ao buscar foto:', err.message))
 
@@ -178,6 +180,7 @@ async function handleMessageReceived(data: any, supabase: any) {
             }
 
             // 4. Criar nova conversa vinculada ao cliente
+            const pushNameParam = msg.pushName || `Lead WhatsApp ${phone}`
             const { data: newConv, error: convErr } = await supabase
                 .from('conversations')
                 .insert({
@@ -185,7 +188,7 @@ async function handleMessageReceived(data: any, supabase: any) {
                     channel: 'whatsapp',
                     status: 'open',
                     customer_id: customerId,
-                    metadata: { remoteJid: key.remoteJid },
+                    metadata: { remoteJid: key.remoteJid, pushName: pushNameParam },
                 })
                 .select('id')
                 .single()

@@ -213,7 +213,7 @@ export default function ChatWindow({ conversation, currentUser, onBack, onToggle
                             {conversation.customer?.metadata?.profilePictureUrl || conversation.metadata?.profilePictureUrl ? (
                                 <img
                                     src={conversation.customer?.metadata?.profilePictureUrl || conversation.metadata?.profilePictureUrl}
-                                    alt={conversation.customer?.full_name || `+${conversation.phone}`}
+                                    alt={conversation.customer?.full_name || conversation.metadata?.pushName || `+${conversation.phone}`}
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
@@ -222,7 +222,7 @@ export default function ChatWindow({ conversation, currentUser, onBack, onToggle
                         </div>
                         <div className="flex flex-col">
                             <h3 className="font-semibold text-white whitespace-nowrap">
-                                {conversation.customer?.full_name || `+${conversation.phone}`}
+                                {conversation.customer?.full_name || conversation.metadata?.pushName || `+${conversation.phone}`}
                             </h3>
                             <div className="flex items-center gap-1.5 text-xs">
                                 {isWaiting ? (

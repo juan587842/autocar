@@ -7,6 +7,8 @@ export const metadata = {
     title: 'Inbox | AutoCar',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function InboxPage() {
     // 1. Verificar Autenticação
     const supabase = await createClient()

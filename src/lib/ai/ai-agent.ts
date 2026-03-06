@@ -61,7 +61,7 @@ export async function processMessage(
             }))
 
         // 3. Configurar provider com base nas settings do dono
-        const aiModelSetting = storeSettings?.ai_model || 'gpt-4o-mini'
+        const aiModelSetting = storeSettings?.ai_default_model || 'gpt-4o-mini'
         const providerConfig = parseProviderConfig(aiModelSetting)
         const model = getLanguageModel(providerConfig)
 
