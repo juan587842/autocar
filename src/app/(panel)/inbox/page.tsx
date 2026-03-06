@@ -18,9 +18,7 @@ export default async function InboxPage() {
         redirect('/login')
     }
 
-    // 2. Buscar conversas iniciais (Server-Side)
-    // Para renderização inicial super rápida. O Realtime fará o resto no cliente.
-    const { data: initialConversations } = await supabase
+    const { data: initialConversations, error: convError } = await supabase
         .from('conversations')
         .select(`
             id,
@@ -37,6 +35,12 @@ export default async function InboxPage() {
         `)
         .order('last_message_at', { ascending: false })
         .limit(30) // Trazemos as 30 mais recentes
+
+    if (convError) {
+        console.error('[Inbox] ERRO FATAL AO BUSCAR CONVERSAS NO SERVER:', convError)
+    } else {
+        console.log(`[Inbox] Server Loaded ${initialConversations?.length} conversations`)
+    }
 
     // O Cliente lida com o supabaseBrowserClient
     return (

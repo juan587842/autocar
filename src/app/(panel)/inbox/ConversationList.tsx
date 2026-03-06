@@ -44,8 +44,12 @@ export default function ConversationList({
                 (payload) => {
                     setConversations((prev) => {
                         const updatedConv = payload.new as Conversation
-                        // Atualizar a existente na lista
-                        const updatedList = prev.map(c => c.id === updatedConv.id ? updatedConv : c)
+                        // Atualizar a existente na lista (mantendo os dados do JOIN "customer" que o Realtime remove)
+                        const updatedList = prev.map(c =>
+                            c.id === updatedConv.id
+                                ? { ...updatedConv, customer: c.customer }
+                                : c
+                        )
                         // Reordenar se last_message_at mudou
                         return updatedList.sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime())
                     })
