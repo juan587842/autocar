@@ -61,13 +61,13 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 {/* Imagem principal */}
-                <div className="lg:col-span-3 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+                <div className="lg:col-span-3 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl relative">
                     <div className="aspect-[16/9] w-full relative">
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 rounded-3xl" />
                         <VehicleImage
                             src={imageUrl}
                             alt={`${v.brand} ${v.model}`}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover rounded-3xl"
                         />
                         <StatusBadgeToggle vehicleId={v.id} initialStatus={v.status || 'Disponível'} />
                     </div>
