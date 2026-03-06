@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     try {
         const payload: any = await req.json()
         const rawEvent = payload.event || ''
-        const eventName = rawEvent.toUpperCase().replace(/\./g, '_') // Normalize messages.upsert -> MESSAGES_UPSERT
+        const eventName = rawEvent.toUpperCase().replace(/[.-]/g, '_') // Normalize messages.upsert / messages-upsert -> MESSAGES_UPSERT
 
         console.log(`[Webhook Evolution] Event: ${eventName} (Raw: ${rawEvent})`, payload.data ? JSON.stringify(payload.data).substring(0, 150) : 'No data')
 

@@ -11,10 +11,19 @@ export type AIProviderConfig = {
     model: string
 }
 
-const DEFAULT_CONFIG: AIProviderConfig = {
-    provider: 'openai',
-    model: 'gpt-4o-mini',
+function getDefaultConfig(): AIProviderConfig {
+    // Auto-detect: se não tem chave OpenAI mas tem chave Google, usa Gemini
+    const hasOpenAI = !!process.env.OPENAI_API_KEY
+    const hasGemini = !!(process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_CLOUD_API_KEY)
+
+    if (!hasOpenAI && hasGemini) {
+        return { provider: 'gemini', model: 'gemini-2.5-flash' }
+    }
+
+    return { provider: 'openai', model: 'gpt-4o-mini' }
 }
+
+const DEFAULT_CONFIG: AIProviderConfig = getDefaultConfig()
 
 /**
  * Retorna o modelo do Vercel AI SDK com base na configuração do dono.

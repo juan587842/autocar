@@ -17,7 +17,7 @@ export async function POST(
     { params }: { params: Promise<{ event: string[] }> }
 ) {
     const { event: eventSegments } = await params
-    const eventFromUrl = (eventSegments || []).join('_').toUpperCase().replace(/\./g, '_')
+    const eventFromUrl = (eventSegments || []).join('_').toUpperCase().replace(/[.-]/g, '_')
 
     console.log(`[Webhook Evolution ByEvent] Rota: /api/webhook/evolution/${eventSegments?.join('/')} | Evento: ${eventFromUrl}`)
 
@@ -35,7 +35,7 @@ export async function POST(
         const payload: any = await req.json()
 
         // O evento pode vir no corpo OU na URL. Priorizar a URL pois é o que define a rota.
-        const bodyEvent = (payload.event || '').toUpperCase().replace(/\./g, '_')
+        const bodyEvent = (payload.event || '').toUpperCase().replace(/[.-]/g, '_')
         const eventName = eventFromUrl || bodyEvent
 
         console.log(`[Webhook ByEvent] Event: ${eventName}`, payload.data ? JSON.stringify(payload.data).substring(0, 150) : 'No data')
