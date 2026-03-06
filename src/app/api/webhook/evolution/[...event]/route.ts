@@ -121,12 +121,60 @@ async function handleMessageReceived(data: any, supabase: any) {
         if (existingConv) {
             conversationId = existingConv.id
         } else {
-            const { data: customer } = await supabase
+            // === AUTO-REGISTRO DE LEAD ===
+            let customerId: string | null = null
+            const { data: existingCustomer } = await supabase
                 .from('customers')
                 .select('id')
                 .eq('phone', phone)
                 .limit(1)
                 .single()
+
+            if (existingCustomer) {
+                customerId = existingCustomer.id
+            } else {
+                const pushName = msg.pushName || `Lead WhatsApp ${phone}`
+                const { data: newCustomer, error: custErr } = await supabase
+                    .from('customers')
+                    .insert({
+                        full_name: pushName,
+                        phone,
+                        source: 'whatsapp',
+                        notes: `Lead capturado automaticamente via WhatsApp em ${new Date().toLocaleDateString('pt-BR')}`,
+                    })
+                    .select('id')
+                    .single()
+
+                if (custErr || !newCustomer) {
+                    console.error('[Webhook ByEvent] Erro ao criar cliente:', custErr)
+                } else {
+                    customerId = newCustomer.id
+                    console.log(`[Webhook ByEvent] ✅ Novo cliente cadastrado: ${pushName} (${phone}) | ID: ${customerId}`)
+
+                    const { data: leadStage } = await supabase
+                        .from('deal_stages')
+                        .select('id')
+                        .eq('name', 'Lead Novo')
+                        .limit(1)
+                        .single()
+
+                    if (leadStage) {
+                        const { error: dealErr } = await supabase
+                            .from('deals')
+                            .insert({
+                                customer_id: customerId,
+                                stage_id: leadStage.id,
+                                notes: `Lead capturado automaticamente via WhatsApp. Primeira mensagem: "${text.substring(0, 100)}"`,
+                            })
+
+                        if (dealErr) {
+                            console.error('[Webhook ByEvent] Erro ao criar deal:', dealErr)
+                        } else {
+                            console.log(`[Webhook ByEvent] ✅ Deal criado no funil "Lead Novo" para cliente ${customerId}`)
+                        }
+                    }
+                }
+            }
 
             const { data: newConv, error: convErr } = await supabase
                 .from('conversations')
@@ -134,7 +182,7 @@ async function handleMessageReceived(data: any, supabase: any) {
                     phone,
                     channel: 'whatsapp',
                     status: 'open',
-                    customer_id: customer?.id || null,
+                    customer_id: customerId,
                     metadata: { remoteJid: key.remoteJid },
                 })
                 .select('id')
