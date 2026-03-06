@@ -56,8 +56,8 @@ export default function CustomersClient({ initialCustomers = [] }: { initialCust
         setIsDeleting(true)
         try {
             const supabase = createClient()
-            // Assume soft delete is implemented via update, or hard delete
-            const { error } = await supabase.from('customers').update({ is_active: false }).eq('id', deleteTarget.id)
+            // Hard delete: remove cliente permanentemente do banco
+            const { error } = await supabase.from('customers').delete().eq('id', deleteTarget.id)
             if (error) throw error
             router.refresh()
             setDeleteTarget(null)
@@ -293,7 +293,7 @@ export default function CustomersClient({ initialCustomers = [] }: { initialCust
                                             <button
                                                 onClick={() => setDeleteTarget(customer)}
                                                 className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl transition-all"
-                                                title="Excluir (Soft Delete)"
+                                                title="Excluir Cliente"
                                             >
                                                 <Trash2 className="w-5 h-5" />
                                             </button>
