@@ -40,7 +40,7 @@ export default function CustomersClient({ initialCustomers = [] }: { initialCust
             status: c.is_active === false ? "Inativo" : "Ativo",
             tags: mappedTags,
             lastSource: c.source || c.lastSource || "Manual",
-            lastContact: isDB ? new Date(c.updated_at).toLocaleDateString() : c.lastContact
+            lastContact: isDB && c.updated_at ? c.updated_at.split('T')[0].split('-').reverse().join('/') : c.lastContact
         }
     }
 

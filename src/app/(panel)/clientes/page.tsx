@@ -25,7 +25,7 @@ export default async function CustomersPage() {
                 color
             )
         )
-    `).order('created_at', { ascending: false })
+    `).eq('is_active', true).order('created_at', { ascending: false })
 
     if (isSeller && user) {
         query = query.eq('assigned_to', user.id)
