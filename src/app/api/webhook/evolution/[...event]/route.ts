@@ -141,6 +141,7 @@ async function handleMessageReceived(data: any, supabase: any) {
                         full_name: pushName,
                         phone,
                         source: 'whatsapp',
+                        is_active: true,
                         notes: `Lead capturado automaticamente via WhatsApp em ${new Date().toLocaleDateString('pt-BR')}`,
                     })
                     .select('id')
