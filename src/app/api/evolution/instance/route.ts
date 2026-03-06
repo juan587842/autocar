@@ -8,7 +8,8 @@ export async function POST(req: NextRequest) {
         const { action, instanceName } = body
 
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-        const webhookUrl = `${appUrl}/api/webhook/evolution`
+        // Permite definir uma URL de webhook específica (útil para redes internas no Docker/EasyPanel)
+        const webhookUrl = process.env.EVOLUTION_WEBHOOK_URL || `${appUrl}/api/webhook/evolution`
 
         switch (action) {
             case 'create': {
