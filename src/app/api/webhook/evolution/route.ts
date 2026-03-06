@@ -5,23 +5,28 @@ import { processMessage } from '@/lib/ai/ai-agent'
 
 // POST /api/webhook/evolution — Recebe eventos da Evolution API
 export async function POST(req: NextRequest) {
+    console.log('[Webhook Evolution] POST Request Recebida!')
+
     // Instantiate inside the handler to prevent build-time eval errors
     const supabaseUrls = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
     // Only proceed if we have valid vars, or return early to avoid crash during dev/build
     if (!supabaseUrls) {
+        console.error('[Webhook Evolution] ERROR: Missing NEXT_PUBLIC_SUPABASE_URL')
         return NextResponse.json({ error: 'Missing Database URL' }, { status: 500 })
     }
 
     const supabase = createClient(supabaseUrls, supabaseKey)
 
     try {
-        const payload: WebhookPayload = await req.json()
+        const payload: any = await req.json()
+        const rawEvent = payload.event || ''
+        const eventName = rawEvent.toUpperCase().replace(/\./g, '_') // Normalize messages.upsert -> MESSAGES_UPSERT
 
-        console.log(`[Webhook Evolution] Event: ${payload.event}`, JSON.stringify(payload.data).substring(0, 200))
+        console.log(`[Webhook Evolution] Event: ${eventName} (Raw: ${rawEvent})`, payload.data ? JSON.stringify(payload.data).substring(0, 150) : 'No data')
 
-        switch (payload.event) {
+        switch (eventName) {
             case 'MESSAGES_UPSERT':
                 await handleMessageReceived(payload.data, supabase)
                 break
