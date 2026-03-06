@@ -25,7 +25,7 @@ export function getLanguageModel(config?: AIProviderConfig) {
 
     if (provider === 'gemini') {
         const google = createGoogleGenerativeAI({
-            apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || '',
+            apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_CLOUD_API_KEY || '',
         })
         return google(model || 'gemini-2.0-flash')
     }
