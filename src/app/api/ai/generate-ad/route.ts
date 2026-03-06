@@ -54,7 +54,7 @@ Sua tarefa é redigir a legenda perfeita para um anúncio de Instagram/Marketpla
 Não inclua textos de confirmação ("Aqui está o texto:"), retorne apenas a cópia publicatária final.`
 
         const { text } = await generateText({
-            model: google('gemini-1.5-pro-latest'),
+            model: google('gemini-2.5-flash'),
             prompt,
         })
 
