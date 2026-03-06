@@ -34,6 +34,38 @@ export async function testEvolutionConnection() {
         })
 
         if (res.ok) {
+            // Força a atualização do Webhook garantindo que a URL de produção esteja lá
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://autocar.juanpaulo.com.br'
+            const webhookUrl = process.env.EVOLUTION_WEBHOOK_URL || `${appUrl.replace(/\/$/, '')}/api/webhook/evolution`
+
+            try {
+                await fetch(`${formattedUrl}/webhook/set/${creds.instanceName}`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': creds.key,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        webhook: {
+                            url: webhookUrl,
+                            byEvents: false,
+                            base64: false,
+                            events: [
+                                "QRCODE_UPDATED",
+                                "CONNECTION_UPDATE",
+                                "MESSAGES_UPSERT",
+                                "MESSAGES_UPDATE",
+                                "messages.upsert",
+                                "messages.update",
+                                "connection.update"
+                            ]
+                        }
+                    })
+                })
+            } catch (e) {
+                console.error('[Evolution API Webhook Update Error]', e)
+            }
+
             const data = await res.json()
             const state = data?.instance?.state || data?.state || 'conectado'
             return { success: true, state }
