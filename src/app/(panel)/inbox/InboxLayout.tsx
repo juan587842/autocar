@@ -4,6 +4,7 @@ import { useState } from 'react'
 import ConversationList from './ConversationList'
 import ChatWindow from './ChatWindow'
 import ClientDetails from './ClientDetails'
+import { MessageSquare } from 'lucide-react'
 
 export type Conversation = {
     id: string
@@ -52,33 +53,40 @@ export default function InboxLayout({ initialConversations, currentUser }: Inbox
                 />
             </div>
 
-            {/* Coluna 2: Chat Window */}
-            <div className={`
-                flex-1 h-full flex flex-col bg-[#0f0f0f] relative
-                ${viewMode === 'list' ? 'hidden lg:flex' : 'flex'}
-            `}>
-                {activeConversationId ? (
-                    <ChatWindow
-                        conversation={activeConversation!}
-                        currentUser={currentUser}
-                        onBack={() => setActiveConversationId(null)}
-                        onToggleDetails={() => setShowDetails(!showDetails)}
-                        showDetails={showDetails}
-                    />
-                ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-white/30 hidden lg:flex">
-                        <div className="w-24 h-24 mb-6 rounded-full bg-white/5 flex items-center justify-center">
-                            <svg className="w-10 h-10 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
+            {/* Colunas do Chat & Detalhes (Container Duplo) */}
+            <div className={`flex-1 flex h-full ${viewMode === 'list' ? 'hidden lg:flex' : 'flex'}`}>
+                {/* Coluna 2: Chat Window */}
+                <div className="flex-1 h-full flex flex-col bg-[#0f0f0f] relative min-w-[320px]">
+                    {activeConversationId ? (
+                        <ChatWindow
+                            conversation={activeConversation!}
+                            currentUser={currentUser}
+                            onBack={() => setActiveConversationId(null)}
+                            onToggleDetails={() => setShowDetails(!showDetails)}
+                            showDetails={showDetails}
+                        />
+                    ) : (
+                        <div className="flex-1 flex items-center justify-center flex-col gap-4 text-white/30 hidden lg:flex bg-[#0A0A0A]">
+                            <div className="p-6 rounded-full bg-white/5 ring-1 ring-white/10">
+                                <MessageSquare className="w-12 h-12" />
+                            </div>
+                            <p className="font-medium text-lg">Selecione uma conversa para iniciar</p>
                         </div>
-                        <p className="text-lg font-medium text-white/50">Selecione uma conversa</p>
-                        <p className="text-sm">Para visualizar as mensagens e responder</p>
+                    )}
+                </div>
+
+                {/* Coluna 3: Client Details Desktop (Apenas se showDetails && ativa) */}
+                {activeConversationId && showDetails && (
+                    <div className="hidden xl:block w-[350px] 2xl:w-[400px] shrink-0 border-l border-white/10 bg-[#0A0A0A] h-full transition-all">
+                        <ClientDetails
+                            conversation={activeConversation!}
+                            onClose={() => setShowDetails(false)}
+                        />
                     </div>
                 )}
             </div>
 
-            {/* Coluna 3: Client Details (Drawer no mobile/tablet/lg, Fixa no desktop XL) */}
+            {/* Coluna 3: Client Details (Drawer no mobile/tablet/lg) */}
             {activeConversation && (
                 <div className={`
                     absolute xl:static inset-y-0 right-0 z-50 

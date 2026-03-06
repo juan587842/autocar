@@ -44,7 +44,7 @@ export default async function InboxPage() {
 
     // O Cliente lida com o supabaseBrowserClient
     return (
-        <div className="flex h-[calc(100vh-64px)] lg:h-screen lg:pt-0 pt-16 flex-col w-full bg-[#0A0A0A] overflow-hidden">
+        <div className="fixed top-16 left-0 lg:left-64 right-0 bottom-0 flex flex-col bg-[#0A0A0A] overflow-hidden z-20">
             <Suspense fallback={
                 <div className="flex items-center justify-center p-8 text-white/50 w-full h-full">
                     Carregando Inbox...
