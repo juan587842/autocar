@@ -22,6 +22,7 @@ type Customer = {
     phone: string
     email?: string
     notes?: string
+    metadata?: Record<string, any>
     tags?: SysTag[]
     created_at: string
 }
@@ -162,7 +163,14 @@ export default function ClientDetails({ conversation, onClose }: ClientDetailsPr
                 {/* Avatar & Nome */}
                 <div className="flex flex-col items-center mb-8">
                     <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center text-white/40 mb-4 ring-1 ring-white/10 shadow-xl overflow-hidden relative">
-                        <User className="w-12 h-12" />
+                        {(() => {
+                            const profileUrl = customer?.metadata?.profilePictureUrl || conversation.metadata?.profilePictureUrl || conversation.customer?.metadata?.profilePictureUrl;
+                            return profileUrl ? (
+                                <img src={profileUrl} alt={customer?.full_name || 'Cliente'} className="w-full h-full object-cover" />
+                            ) : (
+                                <User className="w-12 h-12" />
+                            );
+                        })()}
                     </div>
                     <h2 className="text-xl font-bold text-white text-center">
                         {customer?.full_name || 'Cliente Desconhecido'}

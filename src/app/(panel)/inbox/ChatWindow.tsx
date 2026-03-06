@@ -19,7 +19,7 @@ interface ChatWindowProps {
 type Message = {
     id: string
     content: string
-    sender_type: 'customer' | 'ai' | 'seller'
+    sender_type: 'customer' | 'ai' | 'agent' | 'seller'
     created_at: string
     status: string
 }
@@ -305,8 +305,8 @@ export default function ChatWindow({ conversation, currentUser, onBack, onToggle
                             </div>
                         )}
                         {messages.map((msg, idx) => {
-                            const isSelf = msg.sender_type === 'ai' || msg.sender_type === 'seller'
-                            const isAi = msg.sender_type === 'ai'
+                            const isSelf = msg.sender_type === 'ai' || msg.sender_type === 'agent' || msg.sender_type === 'seller'
+                            const isAi = msg.sender_type === 'ai' || msg.sender_type === 'agent'
 
                             // Data header (show only when date changes)
                             const msgDate = new Date(msg.created_at)
