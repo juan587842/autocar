@@ -56,7 +56,10 @@ export default function CustomersClient({ initialCustomers = [] }: { initialCust
         setIsDeleting(true)
         try {
             const supabase = createClient()
-            // Hard delete: remove cliente permanentemente do banco
+            // 1. Excluir conversas vinculadas ao cliente (cascata manual caso o banco não tenha ON DELETE CASCADE)
+            await supabase.from('conversations').delete().eq('customer_id', deleteTarget.id)
+
+            // 2. Hard delete: remove cliente permanentemente do banco
             const { error } = await supabase.from('customers').delete().eq('id', deleteTarget.id)
             if (error) throw error
             router.refresh()

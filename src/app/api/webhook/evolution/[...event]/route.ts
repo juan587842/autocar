@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { processMessage } from '@/lib/ai/ai-agent'
+import { fetchProfilePicture } from '@/lib/evolution'
 
 // =============================================================================
 // Catch-All Route: /api/webhook/evolution/[...event]
@@ -150,6 +151,16 @@ async function handleMessageReceived(data: any, supabase: any) {
                 } else {
                     customerId = newCustomer.id
                     console.log(`[Webhook ByEvent] ✅ Novo cliente cadastrado: ${pushName} (${phone}) | ID: ${customerId}`)
+
+                    // 2.5 Buscar foto de perfil do WhatsApp assincronamente (não bloqueia a reposta)
+                    fetchProfilePicture(phone).then(async (res) => {
+                        const profileUrl = res?.data?.profilePictureUrl || res?.data?.picture
+                        if (profileUrl) {
+                            await supabase.from('customers').update({
+                                metadata: { profilePictureUrl: profileUrl }
+                            }).eq('id', customerId)
+                        }
+                    }).catch(err => console.error('[Webhook ByEvent] Erro ao buscar foto:', err.message))
 
                     const { data: leadStage } = await supabase
                         .from('deal_stages')

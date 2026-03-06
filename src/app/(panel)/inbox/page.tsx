@@ -30,7 +30,8 @@ export default async function InboxPage() {
             subject,
             last_message_at,
             customer_id,
-            metadata
+            metadata,
+            customer:customers(full_name, metadata)
         `)
         .order('last_message_at', { ascending: false })
         .limit(30) // Trazemos as 30 mais recentes

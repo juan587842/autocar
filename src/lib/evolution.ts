@@ -88,8 +88,15 @@ export async function restartInstance(instanceName: string = INSTANCE_NAME) {
 }
 
 // ============================================
-// Messaging
+// Messaging & Contacts
 // ============================================
+
+export async function fetchProfilePicture(phone: string, instanceName: string = INSTANCE_NAME) {
+    return evoFetch(`/chat/fetchProfilePictureUrl/${instanceName}`, {
+        method: 'POST',
+        body: JSON.stringify({ number: phone }),
+    })
+}
 
 export async function sendText(phone: string, text: string, instanceName: string = INSTANCE_NAME, delayInMs?: number) {
     const body: any = {

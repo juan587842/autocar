@@ -110,6 +110,8 @@ export default function ConversationList({
                         const isActive = activeConversationId === conv.id
                         const isAiActive = conv.is_ai_active
                         const isWaiting = conv.status === 'waiting_human'
+                        const profileUrl = conv.customer?.metadata?.profilePictureUrl || conv.metadata?.profilePictureUrl
+                        const fullName = conv.customer?.full_name || `+${conv.phone}`
 
                         return (
                             <button
@@ -125,8 +127,12 @@ export default function ConversationList({
                             >
                                 {/* Avatar */}
                                 <div className="relative shrink-0">
-                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${isActive ? 'bg-[#FF4D00]/20 text-[#FF4D00]' : 'bg-white/5 text-white/60'}`}>
-                                        <User className="h-6 w-6" />
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden ${isActive ? 'bg-[#FF4D00]/20 text-[#FF4D00]' : 'bg-white/5 text-white/60'}`}>
+                                        {profileUrl ? (
+                                            <img src={profileUrl} alt={fullName} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User className="h-6 w-6" />
+                                        )}
                                     </div>
                                     {/* Platform / Status indicator */}
                                     <div className="absolute -bottom-1 -right-1 bg-[#25D366] rounded-full p-1 border-2 border-[#0A0A0A]">
@@ -138,8 +144,8 @@ export default function ConversationList({
                                 <div className="flex-1 min-w-0 flex flex-col justify-center">
                                     <div className="flex justify-between items-baseline mb-1">
                                         <div className="flex items-center gap-2">
-                                            <span className="font-medium text-white text-sm truncate">
-                                                +{conv.phone}
+                                            <span className="font-medium text-white text-sm truncate" title={fullName}>
+                                                {fullName}
                                             </span>
                                             {/* AI Badge ou Waiting Badge */}
                                             {isWaiting ? (

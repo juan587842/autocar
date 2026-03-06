@@ -16,6 +16,7 @@ export type Conversation = {
     last_message_at: string
     customer_id?: string
     metadata?: Record<string, any>
+    customer?: any
 }
 
 interface InboxLayoutProps {
