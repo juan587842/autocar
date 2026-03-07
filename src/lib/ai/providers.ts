@@ -11,53 +11,105 @@ export type AIProviderConfig = {
     model: string
 }
 
-function getDefaultConfig(): AIProviderConfig {
-    // Auto-detect: se não tem chave OpenAI mas tem chave Google, usa Gemini
-    const hasOpenAI = !!process.env.OPENAI_API_KEY
-    const hasGemini = !!(process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_CLOUD_API_KEY)
+// Known Gemini model name mappings (from human-readable → API model ID)
+const GEMINI_MODEL_MAP: Record<string, string> = {
+    'gemini 2.5 flash': 'gemini-2.5-flash-preview-04-17',
+    'gemini 2.5 flash preview': 'gemini-2.5-flash-preview-04-17',
+    'gemini 2.0 flash': 'gemini-2.0-flash',
+    'gemini 2.0 flash exp': 'gemini-2.0-flash-exp',
+    'gemini 1.5 pro': 'gemini-1.5-pro',
+    'gemini 1.5 flash': 'gemini-1.5-flash',
+}
 
-    if (!hasOpenAI && hasGemini) {
-        return { provider: 'gemini', model: 'gemini-2.5-flash' }
+function normalizeGeminiModelId(raw: string): string {
+    const lower = raw.toLowerCase().trim()
+    // Check map first
+    if (GEMINI_MODEL_MAP[lower]) return GEMINI_MODEL_MAP[lower]
+    // If already has hyphens and looks like an API ID, use as-is
+    if (lower.includes('-') && lower.startsWith('gemini-')) return lower
+    // Fallback: replace spaces with hyphens
+    return lower.replace(/\s+/g, '-')
+}
+
+function getGeminiApiKey(): string {
+    return process.env.GOOGLE_GENERATIVE_AI_API_KEY
+        || process.env.GEMINI_API_KEY
+        || process.env.GOOGLE_CLOUD_API_KEY
+        || ''
+}
+
+function getDefaultConfig(): AIProviderConfig {
+    const hasGemini = !!getGeminiApiKey()
+    const hasOpenAI = !!process.env.OPENAI_API_KEY
+
+    // Prefer Gemini if key is present
+    if (hasGemini) {
+        return { provider: 'gemini', model: 'gemini-2.0-flash' }
     }
 
-    return { provider: 'openai', model: 'gpt-4o-mini' }
+    if (hasOpenAI) {
+        return { provider: 'openai', model: 'gpt-4o-mini' }
+    }
+
+    // If neither key is configured, prefer Gemini (will error with clear message)
+    return { provider: 'gemini', model: 'gemini-2.0-flash' }
 }
 
 const DEFAULT_CONFIG: AIProviderConfig = getDefaultConfig()
 
 /**
  * Retorna o modelo do Vercel AI SDK com base na configuração do dono.
- * Puxa de store_settings ou usa default.
  */
 export function getLanguageModel(config?: AIProviderConfig) {
     const { provider, model } = config || DEFAULT_CONFIG
 
     if (provider === 'gemini') {
-        const google = createGoogleGenerativeAI({
-            apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_CLOUD_API_KEY || '',
-        })
-        return google(model || 'gemini-2.0-flash')
+        const apiKey = getGeminiApiKey()
+        if (!apiKey) {
+            console.error('[Providers] ❌ GOOGLE_GENERATIVE_AI_API_KEY não configurada! Defina essa variável no EasyPanel.')
+        }
+        const google = createGoogleGenerativeAI({ apiKey })
+        const modelId = normalizeGeminiModelId(model)
+        console.log(`[Providers] 🤖 Usando Gemini | Model: ${modelId}`)
+        return google(modelId)
     }
 
-    // Default: OpenAI
-    const openai = createOpenAI({
-        apiKey: process.env.OPENAI_API_KEY || '',
-    })
+    // OpenAI
+    const apiKey = process.env.OPENAI_API_KEY || ''
+    if (!apiKey) {
+        console.error('[Providers] ❌ OPENAI_API_KEY não configurada!')
+    }
+    const openai = createOpenAI({ apiKey })
+    console.log(`[Providers] 🤖 Usando OpenAI | Model: ${model}`)
     return openai(model || 'gpt-4o-mini')
 }
 
 /**
- * Mapeia as strings salvas no DB para o formato do factory
+ * Mapeia as strings salvas no DB para o formato do factory.
+ * Se o modelo mencionar "gemini", força o provider gemini independente do resto.
  */
-export function parseProviderConfig(aiModel?: string): AIProviderConfig {
-    if (!aiModel) return DEFAULT_CONFIG
+export function parseProviderConfig(aiModel?: string | null): AIProviderConfig {
+    if (!aiModel) {
+        console.log(`[Providers] ai_default_model não definido no DB, usando default: ${DEFAULT_CONFIG.provider}/${DEFAULT_CONFIG.model}`)
+        return DEFAULT_CONFIG
+    }
 
     const lower = aiModel.toLowerCase()
 
     if (lower.includes('gemini')) {
-        return { provider: 'gemini', model: lower }
+        const modelId = normalizeGeminiModelId(lower)
+        console.log(`[Providers] Modelo DB "${aiModel}" → Gemini/${modelId}`)
+        return { provider: 'gemini', model: modelId }
     }
 
-    // Qualquer variação de GPT
-    return { provider: 'openai', model: lower.includes('gpt-4o-mini') ? 'gpt-4o-mini' : lower.includes('gpt-4o') ? 'gpt-4o' : 'gpt-4o-mini' }
+    if (lower.includes('gpt')) {
+        const modelId = lower.includes('gpt-4o-mini') ? 'gpt-4o-mini'
+            : lower.includes('gpt-4o') ? 'gpt-4o'
+                : 'gpt-4o-mini'
+        return { provider: 'openai', model: modelId }
+    }
+
+    // Unknown model string - fall back to env-based default
+    console.warn(`[Providers] Modelo desconhecido: "${aiModel}", usando default`)
+    return DEFAULT_CONFIG
 }
