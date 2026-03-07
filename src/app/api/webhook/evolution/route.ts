@@ -201,8 +201,7 @@ async function handleMessageReceived(data: any, supabase: any) {
             }
             conversationId = newConv.id
 
-            // Notificação para a equipe sobre novo lead
-            createNotification({
+            await createNotification({
                 user_id: 'all',
                 title: '🚗 Novo Lead Capturado!',
                 description: `Um novo cliente (+${phone}) iniciou contato via WhatsApp.`,
@@ -255,7 +254,7 @@ async function handleMessageReceived(data: any, supabase: any) {
                 // Notificação para todo novo mensagem do cliente na caixa de entrada
                 const senderName = msg.pushName || `+${phone}`
                 const preview = text !== '[Mídia]' ? text.slice(0, 60) : '📎 Mídia'
-                createNotification({
+                await createNotification({
                     user_id: 'all',
                     title: `💬 Mensagem de ${senderName}`,
                     description: preview,

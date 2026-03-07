@@ -27,8 +27,11 @@ export async function createNotification({
     let userIds: string[] | null = null
 
     if (user_id === 'all') {
-        // Send to all active users
-        const { data: allUsers } = await supabaseAdmin.from('users').select('id')
+        const { data: allUsers, error: fetchErr } = await supabaseAdmin.from('users').select('id')
+        if (fetchErr) {
+            console.error('[createNotification] Erro ao buscar usuários:', fetchErr)
+            return
+        }
         userIds = (allUsers || []).map((u: { id: string }) => u.id)
     } else if (Array.isArray(user_id)) {
         userIds = user_id
@@ -36,9 +39,11 @@ export async function createNotification({
         userIds = [user_id]
     }
 
-    if (!userIds || userIds.length === 0) return
+    if (!userIds || userIds.length === 0) {
+        console.warn('[createNotification] Nenhum user_id resolvido.')
+        return
+    }
 
-    // Insert notifications into DB for all target users
     const rows = userIds.map(uid => ({
         user_id: uid,
         title,
@@ -47,12 +52,16 @@ export async function createNotification({
         link,
     }))
 
-    await supabaseAdmin.from('notifications').insert(rows)
+    const { error: insertErr } = await supabaseAdmin.from('notifications').insert(rows)
+    if (insertErr) {
+        console.error('[createNotification] Erro na inserção Supabase:', insertErr)
+    } else {
+        console.log(`[createNotification] ✅ Salvo no DB para ${rows.length} usuário(s)`)
+    }
 
-    // Fire-and-forget Push to mobile/PWA
     if (sendPush) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-        fetch(`${appUrl}/api/push`, {
+        await fetch(`${appUrl}/api/push`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
