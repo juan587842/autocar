@@ -29,25 +29,36 @@ export function AiSettings() {
                         <label className="text-sm font-medium text-white/80 flex items-center gap-2">
                             <Cpu className="w-4 h-4 text-purple-400" /> Modelo Padrão de IA
                         </label>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            {["GPT-4o Mini", "GPT-4o", "Gemini 2.5 Flash"].map((model) => (
-                                <label key={model} className="cursor-pointer group">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {[
+                                { label: "Gemini 2.0 Flash", badge: "Free", badgeColor: "bg-green-500/20 text-green-400" },
+                                { label: "Gemini 2.0 Flash Exp", badge: "Free", badgeColor: "bg-green-500/20 text-green-400" },
+                                { label: "Gemini 2.5 Flash", badge: "Billing", badgeColor: "bg-yellow-500/20 text-yellow-400" },
+                                { label: "GPT-4o Mini", badge: null, badgeColor: "" },
+                                { label: "GPT-4o", badge: null, badgeColor: "" },
+                            ].map(({ label, badge, badgeColor }) => (
+                                <label key={label} className="cursor-pointer group">
                                     <input
                                         type="radio"
                                         name="llm_model"
-                                        checked={settings.ai_default_model === model}
-                                        onChange={() => updateSetting("ai_default_model", model)}
+                                        checked={settings.ai_default_model === label}
+                                        onChange={() => updateSetting("ai_default_model", label)}
                                         className="peer sr-only"
                                     />
-                                    <div className="px-4 py-3 rounded-xl border border-white/10 bg-black/20 text-white/60 text-sm font-medium transition-all group-hover:bg-white/5 peer-checked:bg-purple-500/20 peer-checked:border-purple-500/50 peer-checked:text-purple-300 text-center">
-                                        {model}
+                                    <div className="relative px-4 py-3 rounded-xl border border-white/10 bg-black/20 text-white/60 text-sm font-medium transition-all group-hover:bg-white/5 peer-checked:bg-purple-500/20 peer-checked:border-purple-500/50 peer-checked:text-purple-300 text-center">
+                                        {label}
+                                        {badge && (
+                                            <span className={`absolute top-1.5 right-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${badgeColor}`}>
+                                                {badge}
+                                            </span>
+                                        )}
                                     </div>
                                 </label>
                             ))}
                         </div>
                     </div>
 
-                    {settings.ai_default_model === 'Gemini 2.5 Flash' ? (
+                    {settings.ai_default_model?.toLowerCase().includes('gemini') ? (
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-white/80 flex items-center gap-2">
                                 <KeyRound className="w-4 h-4 text-purple-400" /> Google Gemini API Key
@@ -59,7 +70,11 @@ export function AiSettings() {
                                 readOnly
                                 className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white/50 font-mono text-sm tracking-wider cursor-not-allowed"
                             />
-                            <p className="text-xs text-white/40">Sua chave do Gemini está configurada globalmente pelo sistema (.env).</p>
+                            <p className="text-xs text-white/40">Sua chave do Gemini está configurada globalmente pelo sistema (.env).
+                                {settings.ai_default_model === 'Gemini 2.5 Flash' && (
+                                    <span className="text-yellow-400/70"> ⚠️ Este modelo requer billing ativo no Google AI Studio.</span>
+                                )}
+                            </p>
                         </div>
                     ) : (
                         <div className="space-y-2">
