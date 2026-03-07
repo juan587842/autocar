@@ -6,6 +6,7 @@ import { BottomBar } from '@/components/layout/bottom-bar'
 import { PwaRegistrar } from '@/components/pwa-registrar'
 import { ComparatorDrawer } from '@/components/catalogo/comparator-drawer'
 import { Toaster } from 'react-hot-toast'
+import NextTopLoader from 'nextjs-toploader'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -52,6 +53,7 @@ export default function RootLayout({
     <html lang="pt-BR" className="dark" suppressHydrationWarning>
       <body className={`${inter.variable} ${outfit.variable} antialiased`}>
         <PwaRegistrar />
+        <NextTopLoader color="#FF4D00" showSpinner={false} height={3} />
         <CustomCursor />
         {children}
         <BottomBar />
