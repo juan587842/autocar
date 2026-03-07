@@ -21,8 +21,8 @@ function getSupabase() {
 export const searchVehicles = tool({
     description: 'ÚNICA ferramenta para checar disponibilidade de veículos, estoque ou procurar opções. Use para encontrar qualquer carro. Obrigatório o uso antes de confirmar ou negar estoque.',
     inputSchema: z.object({
-        brand: z.string().optional().describe('Marca do veículo (ex: Toyota, Honda). Se o cliente perguntar várias, separe por vírgula (ex: Toyota, Honda).'),
-        model: z.string().optional().describe('Modelo do veículo (ex: Corolla, Civic, Onix). Se o cliente pedir múltiplas opções, separe por vírgula (ex: Nivus, T-Cross). PODE SER usado para verificar disponibilidade de um único modelo também!'),
+        brand: z.string().optional().describe('Marca do veículo (ex: Toyota, Honda). Passe apenas UMA marca por chamada. Para múltiplas, faça múltiplas chamadas à tool.'),
+        model: z.string().optional().describe('Modelo do veículo (ex: Corolla, Civic, Onix). Passe APENAS UM modelo por chamada. NUNCA use vírgulas. Para múltiplos carros, faça chamadas separadas para cada um.'),
         minPrice: z.number().optional().describe('Preço mínimo em reais'),
         maxPrice: z.number().optional().describe('Preço máximo em reais'),
         minYear: z.number().optional().describe('Ano mínimo de fabricação'),
