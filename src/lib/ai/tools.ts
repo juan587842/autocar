@@ -21,8 +21,8 @@ function getSupabase() {
 export const searchVehicles = tool({
     description: 'Busca veículos disponíveis no estoque da loja. Use para encontrar carros por marca, modelo, faixa de preço ou ano.',
     inputSchema: z.object({
-        brand: z.string().optional().describe('Marca do veículo (ex: Toyota, Honda, Chevrolet)'),
-        model: z.string().optional().describe('Modelo do veículo (ex: Corolla, Civic, Onix)'),
+        brand: z.string().optional().describe('Marca do veículo (ex: Toyota, Honda). Se o cliente perguntar várias, separe por vírgula (ex: Toyota, Honda).'),
+        model: z.string().optional().describe('Modelo do veículo (ex: Corolla, Civic, Onix). Se o cliente pedir múltiplas opções, separe por vírgula (ex: Nivus, T-Cross).'),
         minPrice: z.number().optional().describe('Preço mínimo em reais'),
         maxPrice: z.number().optional().describe('Preço máximo em reais'),
         minYear: z.number().optional().describe('Ano mínimo de fabricação'),
@@ -31,17 +31,30 @@ export const searchVehicles = tool({
         transmission: z.string().optional().describe('Tipo de câmbio (manual, automático, CVT)'),
     }),
     execute: async (input) => {
+        console.log('[AI Tool] searchVehicles input:', input)
         const supabase = getSupabase()
 
         let query = supabase
             .from('vehicles')
             .select('id, brand, model, year_fab, year_model, price, mileage, fuel, transmission, color, status, slug')
-            .eq('status', 'disponivel')
+            .eq('status', 'available')
             .order('price', { ascending: true })
             .limit(10)
 
-        if (input.brand) query = query.ilike('brand', `%${input.brand}%`)
-        if (input.model) query = query.ilike('model', `%${input.model}%`)
+        if (input.brand) {
+            const brands = input.brand.split(',').map(s => s.trim()).filter(Boolean)
+            if (brands.length > 0) {
+                const orQuery = brands.map(b => `brand.ilike.%${b}%`).join(',')
+                query = query.or(orQuery)
+            }
+        }
+        if (input.model) {
+            const models = input.model.split(',').map(s => s.trim()).filter(Boolean)
+            if (models.length > 0) {
+                const orQuery = models.map(m => `model.ilike.%${m}%`).join(',')
+                query = query.or(orQuery)
+            }
+        }
         if (input.minPrice) query = query.gte('price', input.minPrice)
         if (input.maxPrice) query = query.lte('price', input.maxPrice)
         if (input.minYear) query = query.gte('year_fab', input.minYear)
@@ -99,7 +112,7 @@ export const checkAvailability = tool({
 
         if (!data) return { available: false, message: 'Veículo não encontrado no estoque.' }
 
-        const isAvailable = data.status === 'disponivel'
+        const isAvailable = data.status === 'available'
         return {
             available: isAvailable,
             vehicle: `${data.brand} ${data.model} ${data.year_fab}`,

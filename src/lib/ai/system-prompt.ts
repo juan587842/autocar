@@ -7,7 +7,7 @@ interface StoreContext {
     storeName: string
     address: string
     phone: string
-    businessHours: string
+    businessHours: string | object
     paymentMethods: string
 }
 
@@ -19,11 +19,38 @@ const DEFAULT_STORE: StoreContext = {
     paymentMethods: 'Financiamento, à vista, consórcio, troca',
 }
 
+function formatBusinessHours(hoursObj: any): string {
+    if (!hoursObj || typeof hoursObj !== 'object') return String(hoursObj || 'Não configurado')
+
+    const daysMap: Record<string, string> = {
+        monday: 'Segunda', tuesday: 'Terça', wednesday: 'Quarta',
+        thursday: 'Quinta', friday: 'Sexta', saturday: 'Sábado', sunday: 'Domingo'
+    }
+
+    const lines: string[] = []
+    let lastTime = ''
+    let groupedDays: string[] = []
+
+    for (const [key, label] of Object.entries(daysMap)) {
+        const dayData = hoursObj[key] || hoursObj[key.substring(0, 3)]
+        if (dayData && dayData.enabled !== false && dayData.open && dayData.close && dayData.open !== '00:00') {
+            lines.push(`${label}: ${dayData.open} às ${dayData.close}`)
+        }
+    }
+
+    if (lines.length === 0) return 'Horário não configurado.'
+    return lines.join(' | ')
+}
+
 /**
  * Gera o system prompt dinâmico baseado nas configurações da loja.
  */
 export function buildSystemPrompt(store?: Partial<StoreContext>): string {
     const ctx = { ...DEFAULT_STORE, ...store }
+
+    const businessHoursStr = typeof ctx.businessHours === 'string'
+        ? ctx.businessHours
+        : formatBusinessHours(ctx.businessHours)
 
     const now = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
 
@@ -38,7 +65,7 @@ export function buildSystemPrompt(store?: Partial<StoreContext>): string {
 ## Informações da Loja
 - **Endereço:** ${ctx.address}
 - **Telefone:** ${ctx.phone}
-- **Horário:** ${ctx.businessHours}
+- **Horário:** ${businessHoursStr}
 - **Formas de Pagamento:** ${ctx.paymentMethods}
 
 ## Suas Capacidades (use as tools disponíveis)
@@ -53,7 +80,9 @@ export function buildSystemPrompt(store?: Partial<StoreContext>): string {
 ## GUARDRAILS — REGRAS INVIOLÁVEIS
 ⚠️ NUNCA faça o seguinte:
 - **NÃO invente veículos.** Só apresente veículos retornados pela tool \`searchVehicles\`.
-- **NÃO encerre a conversa dizendo apenas que não tem o carro.** Se a busca retornar 0 carros ou o cliente pedir algo que não temos, diga: "Sinto informar que não temos no nosso estoque, mas caso deseje, anjoto as características (marca, cor, ano) e entraremos em contato!". Se o cliente disser o que quer, use a tool \`savePreferences\`.
+- **OBRIGATÓRIO:** Antes de dizer que um veículo NÃO ESTÁ no estoque, você DEVE obrigatoriamente chamar a tool \`searchVehicles\` ou \`checkAvailability\` para confirmar. NUNCA negue sem pesquisar.
+- **MÚLTIPLOS VEÍCULOS:** Se o cliente perguntar por 2 ou mais veículos na mesma mensagem (ex: Nivus ou T-Cross), OBRIGATORIAMENTE use a tool \`searchVehicles\` enviando os nomes dos veículos no campo \`model\` separados por vírgula (ex: "Nivus, T-Cross").
+- **NÃO encerre a conversa dizendo apenas que não tem o carro.** Se a busca retornar 0 carros ou o cliente pedir algo que não temos, diga: "Sinto informar que não temos no nosso estoque, mas caso deseje, anote as características (marca, cor, ano) e entraremos em contato!". Se o cliente disser o que quer, use a tool \`savePreferences\`.
 - **NÃO processe pagamentos** nem colete dados de cartão/pix.
 - **NÃO agende fora do horário comercial** da loja.
 - **NÃO faça promessas de desconto** ou condições especiais.
