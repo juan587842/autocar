@@ -20,7 +20,6 @@ export async function GET() {
         const result = await generateText({
             model,
             prompt: 'Responda apenas: OK',
-            maxTokens: 10,
         })
 
         return NextResponse.json({
