@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import type { WebhookPayload } from '@/lib/evolution'
 import { processMessage } from '@/lib/ai/ai-agent'
 import { fetchProfilePicture } from '@/lib/evolution'
+import { createNotification } from '@/lib/notifications'
 
 // POST /api/webhook/evolution — Recebe eventos da Evolution API
 export async function POST(req: NextRequest) {
@@ -200,8 +201,14 @@ async function handleMessageReceived(data: any, supabase: any) {
             }
             conversationId = newConv.id
 
-            // Push notification para a equipe sobre novo lead
-            sendNewLeadPush(phone).catch(() => { /* silencioso */ })
+            // Notificação para a equipe sobre novo lead
+            createNotification({
+                user_id: 'all',
+                title: '🚗 Novo Lead Capturado!',
+                description: `Um novo cliente (+${phone}) iniciou contato via WhatsApp.`,
+                type: 'message',
+                link: '/inbox',
+            }).catch(() => { /* silencioso */ })
         }
 
         // 2. Inserir Mensagem

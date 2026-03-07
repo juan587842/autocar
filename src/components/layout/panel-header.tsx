@@ -2,24 +2,73 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
-import { LogOut, Menu, UserCircle, Bell, CarFront, Calendar, MessageSquare } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { LogOut, Menu, UserCircle, Bell, MessageSquare, Info, CheckCircle2, AlertTriangle, X, CheckCheck } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
 import { User } from '@supabase/supabase-js'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import Link from 'next/link'
+
+type Notification = {
+    id: string
+    title: string
+    description?: string
+    type: 'info' | 'message' | 'success' | 'warning' | 'error'
+    link?: string
+    is_read: boolean
+    created_at: string
+}
+
+const notificationIcon = (type: Notification['type']) => {
+    const base = 'w-4 h-4'
+    switch (type) {
+        case 'message': return <MessageSquare className={`${base} text-blue-400`} />
+        case 'success': return <CheckCircle2 className={`${base} text-green-400`} />
+        case 'warning': return <AlertTriangle className={`${base} text-yellow-400`} />
+        case 'error': return <AlertTriangle className={`${base} text-red-400`} />
+        default: return <Info className={`${base} text-white/60`} />
+    }
+}
+
+const notificationColor = (type: Notification['type']) => {
+    switch (type) {
+        case 'message': return 'bg-blue-500/20'
+        case 'success': return 'bg-green-500/20'
+        case 'warning': return 'bg-yellow-500/20'
+        case 'error': return 'bg-red-500/20'
+        default: return 'bg-white/10'
+    }
+}
 
 export function PanelHeader() {
     const router = useRouter()
     const supabase = createClient()
     const pathname = usePathname()
+    const dropdownRef = useRef<HTMLDivElement>(null)
+
     const [user, setUser] = useState<User | null>(null)
     const [userRole, setUserRole] = useState<string>('Carregando...')
     const [showNotifications, setShowNotifications] = useState(false)
+    const [notifications, setNotifications] = useState<Notification[]>([])
+
+    const unreadCount = notifications.filter(n => !n.is_read).length
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setShowNotifications(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
 
     useEffect(() => {
         const fetchUser = async () => {
             const { data: { user } } = await supabase.auth.getUser()
             if (user) {
                 setUser(user)
-                // Busca o role na tabela users
                 const { data } = await supabase
                     .from('users')
                     .select('role')
@@ -34,10 +83,60 @@ export function PanelHeader() {
                     }
                     setUserRole(rolesMap[data.role] || data.role)
                 }
+
+                // Load initial notifications
+                const { data: notifs } = await supabase
+                    .from('notifications')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(30)
+
+                if (notifs) setNotifications(notifs as Notification[])
+
+                // Subscribe to real-time inserts/updates for this user
+                const channel = supabase
+                    .channel(`notifications:${user.id}`)
+                    .on(
+                        'postgres_changes',
+                        {
+                            event: '*',
+                            schema: 'public',
+                            table: 'notifications',
+                            filter: `user_id=eq.${user.id}`,
+                        },
+                        (payload) => {
+                            if (payload.eventType === 'INSERT') {
+                                setNotifications(prev => [payload.new as Notification, ...prev])
+                            } else if (payload.eventType === 'UPDATE') {
+                                setNotifications(prev =>
+                                    prev.map(n => n.id === (payload.new as Notification).id ? payload.new as Notification : n)
+                                )
+                            }
+                        }
+                    )
+                    .subscribe()
+
+                return () => {
+                    supabase.removeChannel(channel)
+                }
             }
         }
         fetchUser()
     }, [supabase])
+
+    const markAsRead = async (id: string) => {
+        await supabase.from('notifications').update({ is_read: true }).eq('id', id)
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
+    }
+
+    const markAllAsRead = async () => {
+        if (!user) return
+        const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id)
+        if (unreadIds.length === 0) return
+        await supabase.from('notifications').update({ is_read: true }).in('id', unreadIds)
+        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+    }
 
     const handleLogout = async () => {
         await supabase.auth.signOut()
@@ -45,13 +144,9 @@ export function PanelHeader() {
         router.refresh()
     }
 
-    // Pega o último segmento da URL para o título (ex: /clientes -> Clientes)
     let pageTitle = pathname.split('/').pop()?.replace(/-/g, ' ') || 'Dashboard'
-
-    // Se for um ID (UUID) na rota de estoque, muda o título
     if (pathname.startsWith('/estoque/') && pathname.split('/').length === 3) {
         const idSegment = pathname.split('/').pop()
-        // Se parece com um hash/UUID (tamanho > 20)
         if (idSegment && idSegment.length > 20) {
             pageTitle = 'Detalhes do Veículo'
         }
@@ -71,70 +166,84 @@ export function PanelHeader() {
                 </h2>
 
                 <div className="flex items-center gap-x-4 lg:gap-x-6">
-                    {/* Botão de Notificações Central (Mock) */}
-                    <div className="relative">
+                    {/* Notification Bell */}
+                    <div className="relative" ref={dropdownRef}>
                         <button
                             onClick={() => setShowNotifications(!showNotifications)}
                             className="relative p-2 text-white/60 hover:text-white transition-colors group"
+                            aria-label="Notificações"
                         >
                             <Bell className="h-6 w-6" />
-                            {/* Badget com pulse e quantidade fake de notificações */}
-                            <span className="absolute top-1 right-1 flex h-3 w-3">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border border-black text-[8px] font-bold text-white items-center justify-center">
-                                    3
+                            {unreadCount > 0 && (
+                                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D00] opacity-60" />
+                                    <span className="relative inline-flex rounded-full h-4 w-4 bg-[#FF4D00] text-[9px] font-bold text-white items-center justify-center">
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
                                 </span>
-                            </span>
+                            )}
                         </button>
 
-                        {/* Dropdown de Notificações (Glassmorphism) */}
                         {showNotifications && (
-                            <div className="absolute right-0 mt-2 w-80 bg-[#1A1A1A]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-slide-up">
-                                <div className="p-4 border-b border-white/10 flex justify-between items-center bg-black/20">
-                                    <h3 className="font-bold text-white">Notificações</h3>
-                                    <span className="text-xs text-red-400 cursor-pointer hover:text-red-300 transition-colors">Marcar todas como lidas</span>
+                            <div className="absolute right-0 mt-2 w-80 bg-[#111111]/98 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-slide-up">
+                                {/* Header */}
+                                <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                                    <h3 className="font-bold text-white text-sm">
+                                        Notificações {unreadCount > 0 && <span className="ml-1 text-[#FF4D00]">({unreadCount})</span>}
+                                    </h3>
+                                    {unreadCount > 0 && (
+                                        <button
+                                            onClick={markAllAsRead}
+                                            className="flex items-center gap-1 text-xs text-white/50 hover:text-white transition-colors"
+                                        >
+                                            <CheckCheck className="w-3 h-3" />
+                                            Marcar lidas
+                                        </button>
+                                    )}
                                 </div>
-                                <div className="max-h-[300px] overflow-y-auto custom-scrollbar flex flex-col">
 
-                                    {/* Notification Mock 1 */}
-                                    <div className="p-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer flex gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                                            <CarFront className="w-4 h-4 text-red-500" />
+                                {/* Notifications List */}
+                                <div className="max-h-[360px] overflow-y-auto">
+                                    {notifications.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-10 gap-3 text-white/30">
+                                            <Bell className="w-8 h-8" />
+                                            <p className="text-sm">Nenhuma notificação</p>
                                         </div>
-                                        <div>
-                                            <p className="text-sm text-white/90 font-medium leading-tight">Nova Oferta Recebida!</p>
-                                            <p className="text-xs text-white/50 mt-1 line-clamp-2">Carlos Eduardo ofereceu <strong>R$ 115.000</strong> num Compass L. 2022.</p>
-                                            <p className="text-[10px] text-red-400 mt-2 font-bold uppercase tracking-widest">Há 5 min</p>
-                                        </div>
-                                    </div>
+                                    ) : (
+                                        notifications.map((n) => {
+                                            const content = (
+                                                <div
+                                                    key={n.id}
+                                                    onClick={() => markAsRead(n.id)}
+                                                    className={`p-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer flex gap-3 ${!n.is_read ? 'bg-white/[0.03]' : ''}`}
+                                                >
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${notificationColor(n.type)}`}>
+                                                        {notificationIcon(n.type)}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className={`text-sm leading-tight truncate ${n.is_read ? 'text-white/60' : 'text-white font-medium'}`}>
+                                                            {n.title}
+                                                        </p>
+                                                        {n.description && (
+                                                            <p className="text-xs text-white/40 mt-0.5 line-clamp-2">{n.description}</p>
+                                                        )}
+                                                        <p className="text-[10px] text-white/30 mt-1.5 uppercase tracking-widest">
+                                                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
+                                                        </p>
+                                                    </div>
+                                                    {!n.is_read && (
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-[#FF4D00] mt-1.5 shrink-0" />
+                                                    )}
+                                                </div>
+                                            )
 
-                                    {/* Notification Mock 2 */}
-                                    <div className="p-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer flex gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
-                                            <Calendar className="w-4 h-4 text-blue-500" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-white/90 font-medium leading-tight">Visita Agendada: Hoje 15h</p>
-                                            <p className="text-xs text-white/50 mt-1 line-clamp-2">Lembrete: Visita agendada de Mariana Costa para o Polo Highline 2023.</p>
-                                            <p className="text-[10px] text-blue-400 mt-2 font-bold uppercase tracking-widest">Há 2 horas</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Notification Mock 3 */}
-                                    <div className="p-4 hover:bg-white/5 transition-colors cursor-pointer flex gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
-                                            <MessageSquare className="w-4 h-4 text-green-500" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-white/90 font-medium leading-tight">Robô em Ação</p>
-                                            <p className="text-xs text-white/50 mt-1 line-clamp-2">O Auto Cérebro qualificou 2 novos leads do Instagram nas últimas 1h.</p>
-                                            <p className="text-[10px] text-green-400 mt-2 font-bold uppercase tracking-widest">Ontem</p>
-                                        </div>
-                                    </div>
-
-                                </div>
-                                <div className="p-3 border-t border-white/10 bg-black/20 text-center">
-                                    <button className="text-sm font-medium text-white/80 hover:text-white transition-colors">Ver Central Completa</button>
+                                            return n.link ? (
+                                                <Link key={n.id} href={n.link} onClick={() => { markAsRead(n.id); setShowNotifications(false) }}>
+                                                    {content}
+                                                </Link>
+                                            ) : content
+                                        })
+                                    )}
                                 </div>
                             </div>
                         )}
