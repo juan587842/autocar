@@ -16,13 +16,13 @@ function getSupabase() {
 }
 
 // ============================================
-// 1. searchVehicles — Busca veículos no estoque
+// 1. searchVehicles — Busca veículos e verifica disponibilidade
 // ============================================
 export const searchVehicles = tool({
-    description: 'Busca veículos disponíveis no estoque da loja. Use para encontrar carros por marca, modelo, faixa de preço ou ano.',
+    description: 'ÚNICA ferramenta para checar disponibilidade de veículos, estoque ou procurar opções. Use para encontrar qualquer carro. Obrigatório o uso antes de confirmar ou negar estoque.',
     inputSchema: z.object({
         brand: z.string().optional().describe('Marca do veículo (ex: Toyota, Honda). Se o cliente perguntar várias, separe por vírgula (ex: Toyota, Honda).'),
-        model: z.string().optional().describe('Modelo do veículo (ex: Corolla, Civic, Onix). Se o cliente pedir múltiplas opções, separe por vírgula (ex: Nivus, T-Cross).'),
+        model: z.string().optional().describe('Modelo do veículo (ex: Corolla, Civic, Onix). Se o cliente pedir múltiplas opções, separe por vírgula (ex: Nivus, T-Cross). PODE SER usado para verificar disponibilidade de um único modelo também!'),
         minPrice: z.number().optional().describe('Preço mínimo em reais'),
         maxPrice: z.number().optional().describe('Preço máximo em reais'),
         minYear: z.number().optional().describe('Ano mínimo de fabricação'),
@@ -86,44 +86,7 @@ export const searchVehicles = tool({
     },
 })
 
-// ============================================
-// 2. checkAvailability — Verifica disponibilidade
-// ============================================
-export const checkAvailability = tool({
-    description: 'Verifica se um veículo específico está disponível para visita/compra.',
-    inputSchema: z.object({
-        vehicleId: z.string().optional().describe('ID do veículo (UUID)'),
-        brand: z.string().optional().describe('Marca do veículo'),
-        model: z.string().optional().describe('Modelo do veículo'),
-    }),
-    execute: async (input) => {
-        const supabase = getSupabase()
-
-        let query = supabase.from('vehicles').select('id, brand, model, year_fab, price, status')
-
-        if (input.vehicleId) {
-            query = query.eq('id', input.vehicleId)
-        } else {
-            if (input.brand) query = query.ilike('brand', `%${input.brand}%`)
-            if (input.model) query = query.ilike('model', `%${input.model}%`)
-        }
-
-        const { data } = await query.limit(1).single()
-
-        if (!data) return { available: false, message: 'Veículo não encontrado no estoque.' }
-
-        const isAvailable = data.status === 'available'
-        return {
-            available: isAvailable,
-            vehicle: `${data.brand} ${data.model} ${data.year_fab}`,
-            price: `R$ ${Number(data.price).toLocaleString('pt-BR')}`,
-            status: data.status,
-            message: isAvailable
-                ? `O ${data.brand} ${data.model} está disponível! Gostaria de agendar uma visita?`
-                : `Infelizmente o ${data.brand} ${data.model} está com status "${data.status}". Posso te mostrar alternativas similares!`,
-        }
-    },
-})
+// A ferramenta checkAvailability foi removida para reduzir a sobrecarga cognitiva da IA. Todo processo de verificação de estoque e veículos agora ocorre via searchVehicles.
 
 // ============================================
 // 3. scheduleVisit — Agenda visita
@@ -444,7 +407,6 @@ export const checkOfferStatus = tool({
 // Export all tools as object for AI SDK
 export const agentTools = {
     searchVehicles,
-    checkAvailability,
     scheduleVisit,
     getStoreInfo,
     saveInterest,
