@@ -13,10 +13,11 @@ export type AIProviderConfig = {
 
 // Known Gemini model name mappings (from human-readable → API model ID)
 const GEMINI_MODEL_MAP: Record<string, string> = {
-    'gemini 2.5 flash': 'gemini-2.0-flash',           // 2.5 preview not available via Cloud API key
-    'gemini 2.5 flash preview': 'gemini-2.0-flash',
+    'gemini 2.5 flash': 'gemini-2.5-flash-preview-04-17',      // ✅ Requires AI Studio key
+    'gemini 2.5 flash preview': 'gemini-2.5-flash-preview-04-17',
     'gemini 2.0 flash': 'gemini-2.0-flash',
     'gemini 2.0 flash exp': 'gemini-2.0-flash-exp',
+    'gemini 2.0 flash experimental': 'gemini-2.0-flash-exp',
     'gemini 1.5 pro': 'gemini-1.5-pro',
     'gemini 1.5 flash': 'gemini-1.5-flash',
 }
