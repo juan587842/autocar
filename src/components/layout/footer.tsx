@@ -79,9 +79,18 @@ export function Footer() {
                     <p className="text-xs text-[var(--color-text-muted)]">
                         © {new Date().getFullYear()} AutoCar. Todos os direitos reservados.
                     </p>
-                    <p className="text-xs text-[var(--color-text-muted)]">
-                        Atendimento 24h via WhatsApp com IA
-                    </p>
+                    <div className="flex items-center gap-3">
+                        <p className="text-xs text-[var(--color-text-muted)]">
+                            Atendimento 24h via WhatsApp com IA
+                        </p>
+                        <Link
+                            href="/login"
+                            className="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] opacity-30 hover:opacity-100 transition-all"
+                            title="Acesso Restrito"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                        </Link>
+                    </div>
                 </div>
             </div>
         </footer>
