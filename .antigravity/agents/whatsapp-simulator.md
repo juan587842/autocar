@@ -81,24 +81,22 @@ commands:
     logic: |
       Este comando instrui o agente a executar o seguinte loop autônomo e contínuo:
       
-      IMPORTANTE ANTES DE COMEÇAR: Peça ao usuário (se você ainda não souber) o NÚMERO DA LOJA. Você precisará dele para enviar a mensagem.
-      O número que "fala" é o cliente (instância 'Prospecção').
+      O agente usará o número pessoal '5512991448266' para se passar pelo cliente. O sistema da AutoCar (IA) responderá enviando as mensagens para este número através da instância 'Prospecção'.
 
       PARA CADA TURNO (Máximo 5):
       1. Gere a fala do cliente baseada no {perfil}.
-      2. Envie a fala do cliente disparando a API da Evolution local via CLI usando `run_command`:
-         `curl -X POST http://localhost:8080/message/sendText/Prospecção -H "apikey: SUAKEYGLOBAL" -H "Content-Type: application/json" -d '{"number":"NUMERO_DA_LOJA","options":{"delay":1200,"presence":"composing"},"textMessage":{"text":"TEXTO_GERADO_AQUI"}}'`
-         (Nota a: substitua TEXTO_GERADO_AQUI pelo texto escapado para JSON gerado no passo 1).
-         (Nota b: substitua NUMERO_DA_LOJA pelo número recebedor. A API Key deve ser lida do ambiente ou pedida ao usuário).
-      3. Aguarde 10 a 15 segundos para a IA processar a resposta e o Evolution re-sincronizar (usando `sleep 15` ou equivalente).
+      2. Envie a fala do cliente disparando um Webhook local via CLI usando `run_command`:
+         `curl -X POST http://localhost:3000/api/webhook/evolution -H "Content-Type: application/json" -d '{"event":"MESSAGES_UPSERT","data":{"key":{"remoteJid":"5512991448266@s.whatsapp.net","fromMe":false,"id":"SIMULATOR_'$(date +%s)'"},"pushName":"Juan (Simulador)","message":{"conversation":"TEXTO_GERADO_AQUI"}}}'`
+         (Nota: substitua TEXTO_GERADO_AQUI pelo texto gerado no passo 1. Atenção para escapar aspas duplas no texto gerado).
+      3. Aguarde 7 a 10 segundos para a IA processar a resposta e o Evolution enviar a mensagem real (usando run_command `sleep 10` ou equivalente).
       4. Consulte a resposta da IA no banco de dados usando o tool `mcp_supabase-mcp-server_execute_sql`:
-         Para isso, busque a última mensagem da conversa do número pessoal '5512991448266':
+         Para isso, busque a última mensagem da mesma conversa:
          `SELECT m.content, m.sender_type, m.created_at FROM messages m JOIN conversations c ON m.conversation_id = c.id WHERE c.phone = '5512991448266' ORDER BY m.created_at DESC LIMIT 1;`
       5. Se o `sender_type` da última mensagem for 'agent', a IA respondeu com sucesso. Leia o `content`.
       6. Repita o passo 1 avaliando a resposta da IA.
       
       Após 5 turnos ou se a IA falhar gravemente, execute automaticamente o comando *generate-feedback-report.
-      Documente cada turno no terminal para o usuário acompanhar.
+      O agente deve documentar cada turno no terminal para o usuário acompanhar.
 
   - name: generate-feedback-report
     visibility: [full, quick, key]
