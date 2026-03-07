@@ -208,7 +208,7 @@ async function handleMessageReceived(data: any, supabase: any) {
                 description: `Um novo cliente (+${phone}) iniciou contato via WhatsApp.`,
                 type: 'message',
                 link: '/inbox',
-            }).catch(() => { /* silencioso */ })
+            }).catch((err) => console.warn('[Webhook] Erro ao criar notificação de novo lead:', err?.message))
         }
 
         // 2. Inserir Mensagem
@@ -251,6 +251,17 @@ async function handleMessageReceived(data: any, supabase: any) {
                 } catch (aiErr: any) {
                     console.error('[Webhook] Erro ao verificar AI:', aiErr.message)
                 }
+
+                // Notificação para todo novo mensagem do cliente na caixa de entrada
+                const senderName = msg.pushName || `+${phone}`
+                const preview = text !== '[Mídia]' ? text.slice(0, 60) : '📎 Mídia'
+                createNotification({
+                    user_id: 'all',
+                    title: `💬 Mensagem de ${senderName}`,
+                    description: preview,
+                    type: 'message',
+                    link: '/inbox',
+                }).catch((err) => console.warn('[Webhook] Erro ao criar notificação de mensagem:', err?.message))
             }
         }
     }
