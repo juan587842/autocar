@@ -54,11 +54,11 @@ export default function RootLayout({
       <body className={`${inter.variable} ${outfit.variable} antialiased`}>
         <PwaRegistrar />
         <NextTopLoader color="#FF4D00" showSpinner={false} height={3} />
-        <CustomCursor />
         {children}
         <BottomBar />
         <ComparatorDrawer />
         <Toaster position="top-center" />
+        <CustomCursor />
       </body>
     </html>
   )
