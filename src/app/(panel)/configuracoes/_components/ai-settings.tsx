@@ -31,9 +31,9 @@ export function AiSettings() {
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             {[
-                                { label: "Gemini 2.0 Flash", badge: "Free", badgeColor: "bg-green-500/20 text-green-400" },
-                                { label: "Gemini 2.0 Flash Exp", badge: "Free", badgeColor: "bg-green-500/20 text-green-400" },
-                                { label: "Gemini 2.5 Flash", badge: "Billing", badgeColor: "bg-yellow-500/20 text-yellow-400" },
+                                { label: "Gemini 2.5 Flash", badge: "Free", badgeColor: "bg-green-500/20 text-green-400" },
+                                { label: "Gemini 2.0 Flash", badge: "Billing", badgeColor: "bg-yellow-500/20 text-yellow-400" },
+                                { label: "Gemini 2.0 Flash Exp", badge: "Billing", badgeColor: "bg-yellow-500/20 text-yellow-400" },
                                 { label: "GPT-4o Mini", badge: null, badgeColor: "" },
                                 { label: "GPT-4o", badge: null, badgeColor: "" },
                             ].map(({ label, badge, badgeColor }) => (
@@ -71,8 +71,8 @@ export function AiSettings() {
                                 className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white/50 font-mono text-sm tracking-wider cursor-not-allowed"
                             />
                             <p className="text-xs text-white/40">Sua chave do Gemini está configurada globalmente pelo sistema (.env).
-                                {settings.ai_default_model === 'Gemini 2.5 Flash' && (
-                                    <span className="text-yellow-400/70"> ⚠️ Este modelo requer billing ativo no Google AI Studio.</span>
+                                {settings.ai_default_model?.includes('Gemini 2.0 Flash') && (
+                                    <span className="text-yellow-400/70"> ⚠️ Este modelo requer billing ativo no seu Google AI Studio.</span>
                                 )}
                             </p>
                         </div>
