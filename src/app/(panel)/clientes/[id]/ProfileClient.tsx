@@ -129,8 +129,12 @@ export default function ProfileClient({ customer, historyEvents }: ProfileClient
                         <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-500/20 rounded-full blur-3xl pointer-events-none" />
 
                         <div className="flex flex-col items-center text-center">
-                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-red-500/30 to-orange-500/30 border-2 border-red-400/50 flex items-center justify-center text-red-400 font-bold mb-4">
-                                <User className="w-10 h-10" />
+                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-red-500/30 to-orange-500/30 border-2 border-red-400/50 flex items-center justify-center text-red-400 font-bold mb-4 overflow-hidden">
+                                {customer.metadata?.profilePictureUrl ? (
+                                    <img src={customer.metadata.profilePictureUrl} alt={c.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <User className="w-10 h-10" />
+                                )}
                             </div>
                             <h2 className="text-2xl font-bold mb-1">{c.name}</h2>
                             <p className="text-sm text-white/50 mb-4">Lead desde {c.createdAt}</p>

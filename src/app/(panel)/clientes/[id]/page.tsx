@@ -25,7 +25,7 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
     // Busca Histórico: Agendamentos e Mensagens para montar a Timeline
     const { data: appointments } = await supabase
         .from('appointments')
-        .select('id, scheduled_at, duration_min, status, notes, summary')
+        .select('id, scheduled_at, duration_min, status, notes')
         .eq('customer_id', id)
 
     const { data: messages } = await supabase
@@ -52,12 +52,21 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
     if (messages) {
         messages.forEach((conv: any) => {
             conv.messages?.forEach((msg: any) => {
+                // Apenas mostrar mensagens do cliente e do agente/vendedor (remover duplicatas AI silenciosas)
+                if (!msg.content || msg.content === '[Mídia]') return
+
+                const senderLabel = msg.sender_type === 'customer'
+                    ? 'Cliente'
+                    : msg.sender_type === 'ai' || msg.sender_type === 'agent'
+                        ? 'Agente IA'
+                        : 'Vendedor'
+
                 historyEvents.push({
                     id: `msg-${msg.id}`,
-                    type: 'lead',
+                    type: msg.sender_type === 'customer' ? 'lead' : 'note',
                     date: new Date(msg.created_at).toLocaleString('pt-BR'),
-                    content: `Mensagem (${msg.sender_type}): ${msg.content || 'Mídia'}`,
-                    author: msg.sender_type === 'agent' ? 'Vendedor' : 'Cliente',
+                    content: `${msg.content.slice(0, 120)}${msg.content.length > 120 ? '...' : ''}`,
+                    author: senderLabel,
                     rawDate: new Date(msg.created_at).getTime()
                 })
             })
