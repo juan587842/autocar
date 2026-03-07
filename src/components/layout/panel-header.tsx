@@ -153,12 +153,7 @@ export function PanelHeader() {
     }
 
     return (
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-x-4 border-b border-white/10 bg-[#0A0A0A]/80 backdrop-blur-3xl px-4 sm:gap-x-6 sm:px-6 lg:px-8">
-            <button className="p-2 text-white/60 hover:text-white lg:hidden">
-                <span className="sr-only">Open sidebar</span>
-                <Menu className="h-6 w-6" aria-hidden="true" />
-            </button>
-
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-white/10 bg-[#0A0A0A]/80 backdrop-blur-3xl px-4 sm:px-6 lg:px-8">
             <div className="flex flex-1 items-center justify-between gap-x-4 lg:gap-x-6">
                 {/* Header Title */}
                 <h2 className="text-xl font-semibold capitalize text-white">

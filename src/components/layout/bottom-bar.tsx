@@ -15,11 +15,17 @@ const tabs = [
 export function BottomBar() {
     const pathname = usePathname()
 
-    // Hide bottom bar on detail pages (slug pages)
+    // Hide bottom bar on detail pages (slug pages) and admin panel routes
     const segments = pathname.split('/').filter(Boolean)
     const isDetailPage = segments.length >= 2 && segments[0] === 'catalogo'
 
-    if (isDetailPage) return null
+    const panelRoutes = [
+        '/dashboard', '/inbox', '/agenda', '/clientes', '/estoque',
+        '/vendas', '/ofertas', '/followup', '/campanhas', '/configuracoes'
+    ]
+    const isPanelRoute = panelRoutes.some(route => pathname.startsWith(route))
+
+    if (isDetailPage || isPanelRoute) return null
 
     return (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--color-glass-bg)] backdrop-blur-2xl border-t border-[var(--color-glass-border)] safe-area-bottom">

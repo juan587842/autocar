@@ -1,5 +1,6 @@
 import { PanelSidebar } from '@/components/layout/panel-sidebar'
 import { PanelHeader } from '@/components/layout/panel-header'
+import { PanelBottomBar } from '@/components/layout/panel-bottom-bar'
 import PushProvider from '@/components/providers/PushProvider'
 
 export default function PanelLayout({
@@ -17,11 +18,12 @@ export default function PanelLayout({
                 </div>
 
                 <PanelSidebar />
+                <PanelBottomBar />
 
                 <div className="lg:pl-64 flex flex-col min-h-screen relative z-10 transition-all">
                     <PanelHeader />
 
-                    <main className="flex-1">
+                    <main className="flex-1 pb-20 lg:pb-0">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
                             {children}
                         </div>
