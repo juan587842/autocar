@@ -77,13 +77,28 @@ commands:
   - name: start-simulation
     visibility: [full, quick, key]
     args: '{perfil}'
-    description: 'Inicia uma sessão de simulação onde este agente finge ser um cliente falando com a IA da AutoCar. (Perfis: impaciente, pechincheiro, indeciso, desconfiado)'
-  - name: next-message
-    visibility: [full]
-    description: 'Após a IA responder, usar este comando para gerar a próxima fala capciosa do cliente simulado.'
+    description: 'Inicia uma sessão AUTÔNOMA de simulação. O agente deve enviar a mensagem e consultar a resposta em loop contínuo (máximo 5 turnos).'
+    logic: |
+      Este comando instrui o agente a executar o seguinte loop autônomo e contínuo:
+      
+      PARA CADA TURNO (Máximo 5):
+      1. Gere a fala do cliente baseada no {perfil}.
+      2. Envie a fala do cliente disparando um Webhook local via CLI usando `run_command`:
+         `curl -X POST http://localhost:3000/api/webhook/evolution -H "Content-Type: application/json" -d '{"event":"MESSAGES_UPSERT","data":{"key":{"remoteJid":"5512991448266@s.whatsapp.net","fromMe":false,"id":"SIMULATOR_'$(date +%s)'"},"pushName":"Juan (Simulador)","message":{"conversation":"TEXTO_GERADO_AQUI"}}}'`
+         (Nota: substitua TEXTO_GERADO_AQUI pelo texto gerado no passo 1).
+      3. Aguarde 7 a 10 segundos para a IA processar a resposta (usando run_command `sleep 10` ou equivalente).
+      4. Consulte a resposta da IA no banco de dados usando o tool `mcp_supabase-mcp-server_execute_sql`:
+         Para isso, busque a última mensagem da mesma conversa:
+         `SELECT m.content, m.sender_type, m.created_at FROM messages m JOIN conversations c ON m.conversation_id = c.id WHERE c.phone = '5512991448266' ORDER BY m.created_at DESC LIMIT 1;`
+      5. Se o `sender_type` da última mensagem for 'agent', a IA respondeu com sucesso. Leia o `content`.
+      6. Repita o passo 1 avaliando a resposta da IA.
+      
+      Após 5 turnos ou se a IA falhar gravemente, execute automaticamente o comando *generate-feedback-report.
+      O agente deve usar as ferramentas sem perguntar, documentando cada turno no terminal para o usuário acompanhar.
+
   - name: generate-feedback-report
     visibility: [full, quick, key]
-    description: 'Encerra a simulação atual e gera um relatório auditando onde a IA de vendas falhou e como melhorar seu prompt.'
+    description: 'Finaliza a simulação e gera um relatório auditando onde a IA de vendas falhou e como melhorar seu prompt.'
   - name: guide
     visibility: [full, quick]
     description: 'Guia de como usar a Simulação'
@@ -97,17 +112,18 @@ dependencies:
   tasks:
     - qa-whatsapp-stress-test.md
     - generate-feedback-loop.md
-  tools: []
+  tools:
+    - run_command # Necessário para disparar os webhooks curl localmente
+    - mcp_supabase-mcp-server_execute_sql # Necessário para ler as respostas do DB
 ```
 
 ---
 
 ## Quick Commands
 
-**Simulação de Vendas:**
-- `*start-simulation {perfil}` - Começa uma simulação atuando como o cliente especificado. (Ex: *start-simulation impaciente)
-- `*next-message` - Continua a atuar gerando a próxima fala.
-- `*generate-feedback-report` - Finaliza e gera relatório de auditoria do Agente IA.
+**Simulação de Vendas (Loop Autônomo):**
+- `*start-simulation {perfil}` - O Agente assumirá o controle do terminal, enviará a mensagem injetando o webhook, vai ler a resposta no banco de dados e seguirá a conversa sozinho por 5 turnos.
+- `*generate-feedback-report` - Finaliza e entrega o relatório de auditoria do Agente IA.
 
 ---
 
@@ -117,14 +133,3 @@ dependencies:
 - **@architect:** Produz logs para ele ajustar os prompts gerais.
 - **@dev:** Aponta bugs sistêmicos na entrega das mensagens.
 - **@po:** Demonstra a real eficácia do negócio em campo de batalha.
-
----
-
-## 🎭 Simulator Guide (*guide)
-
-### Como Usar:
-1. Comece solicitando `*start-simulation pechincheiro`. Eu assumirei a postura de um cliente que quer descontos absurdos.
-2. Você (ou o próprio sistema) copia a resposta que o Agente da AutoCar deu para mim.
-3. Eu avalio internamente a resposta, e emito a minha próxima provocação em texto.
-4. Repetimos o ciclo até esgotarmos o fluxo de vendas ou o Agente IA quebrar (perder contexto, prometer o que não deve, ser ríspido).
-5. Você dispara `*generate-feedback-report` e eu saio do personagem para entregar as Notas de QA para melhoria do Sistema IA.
