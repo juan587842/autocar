@@ -74,12 +74,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Hide native cursor on devices with a fine pointer (mouse) */
-@media (pointer: fine) {
-  * {
-    cursor: none !important;
-  }
-}
 
 body {
   background-color: var(--color-bg-primary);

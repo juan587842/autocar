@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Outfit } from 'next/font/google'
 import './globals.css'
-import { CustomCursor } from '@/components/layout/custom-cursor'
 import { BottomBar } from '@/components/layout/bottom-bar'
 import { PwaRegistrar } from '@/components/pwa-registrar'
 import { ComparatorDrawer } from '@/components/catalogo/comparator-drawer'
@@ -58,7 +57,6 @@ export default function RootLayout({
         <BottomBar />
         <ComparatorDrawer />
         <Toaster position="top-center" />
-        <CustomCursor />
       </body>
     </html>
   )
