@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { upsertVehicle } from "../../actions"
+import { uploadVehiclePhoto, deleteVehiclePhoto } from "../../upload-actions"
 import { VehicleForm } from "../../_components/vehicle-form"
 
 export default async function EditVehiclePage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,7 +22,8 @@ export default async function EditVehiclePage({ params }: { params: Promise<{ id
         <VehicleForm
             initialData={vehicle}
             submitAction={upsertVehicle}
-            uploadAction={null}
+            uploadAction={uploadVehiclePhoto}
+            deleteAction={deleteVehiclePhoto}
         />
     )
 }

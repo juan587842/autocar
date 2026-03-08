@@ -6,7 +6,7 @@ import { Car, SlidersHorizontal, ImageIcon, UploadCloud, X, GripVertical, Shield
 import Link from 'next/link'
 import { Tabs } from '@/components/ui/tabs'
 
-export function VehicleForm({ initialData, submitAction, uploadAction }: { initialData?: any, submitAction: any, uploadAction: any }) {
+export function VehicleForm({ initialData, submitAction, uploadAction, deleteAction }: { initialData?: any, submitAction: any, uploadAction: any, deleteAction?: any }) {
     const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -115,8 +115,28 @@ export function VehicleForm({ initialData, submitAction, uploadAction }: { initi
             const vehicleId = res.data.id
 
             // 3. Process Photos
-            // In a real app we would call uploadAction(formData) iteratively or delete removed ones.
-            // Simplified: we rely on server side processing if desired, or skip here to keep code short.
+            if (deleteAction) {
+                // Find removed photos
+                const remainingIds = files.map(f => f.id)
+                const removedPhotos = initialPhotos.filter((p: any) => !remainingIds.includes(p.id))
+                for (const rp of removedPhotos) {
+                    await deleteAction(rp.id)
+                }
+            }
+
+            if (uploadAction) {
+                // Upload new photos
+                for (let i = 0; i < files.length; i++) {
+                    const f = files[i]
+                    if (!f.isExisting && f.file) {
+                        const fd = new FormData()
+                        fd.append('file', f.file)
+                        fd.append('vehicleId', vehicleId)
+                        fd.append('isCover', (i === 0).toString())
+                        await uploadAction(fd)
+                    }
+                }
+            }
             alert('Veículo salvo com sucesso!')
             router.push('/estoque')
             router.refresh()
@@ -157,13 +177,13 @@ export function VehicleForm({ initialData, submitAction, uploadAction }: { initi
         <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
             <div><h3 className="text-lg font-medium text-white mb-4">Equipamentos Padrão</h3><div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">{optionalItemsList.map(i => (<label key={i.id} className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 cursor-pointer"><input type="checkbox" checked={features.includes(i.id)} onChange={() => toggleFeature(i.id)} className="w-5 h-5 rounded-md accent-[#FF4D00]" /><span className="text-sm text-white/70">{i.label}</span></label>))}</div></div>
             <div className="pt-6 border-t border-white/10"><div className="flex items-center justify-between mb-4"><h3 className="text-lg text-white">Campos Customizados</h3><button type="button" onClick={addCustomField} className="bg-white/10 px-3 py-1.5 rounded text-sm text-white">Adicionar</button></div><div className="space-y-3">{customFields.map((field) => (<div key={field.id} className="flex gap-3"><input type="text" placeholder="Nome. Ex: Potência" value={field.label} onChange={(e) => updateCustomField(field.id, 'label', e.target.value)} className="flex-1 bg-white/5 border rounded-xl px-3 text-white" /><input type="text" placeholder="Valor. Ex: 150cv" value={field.value} onChange={(e) => updateCustomField(field.id, 'value', e.target.value)} className="flex-1 bg-white/5 border rounded-xl px-3 text-white" /><button type="button" onClick={() => removeCustomField(field.id)} className="p-2.5 bg-red-500/20 text-red-500 rounded-xl"><Trash2 className="w-4 h-4" /></button></div>))}</div></div>
-            <div className="flex justify-between pt-6 border-t border-white/10"><button type="button" onClick={() => document.getElementById('tab-btn-photos')?.click()} className="text-white/60">Voltar</button><button type="submit" disabled={isSubmitting} className="bg-green-500 text-white px-10 py-3 rounded-2xl font-bold flex items-center gap-2"><ShieldCheck className="h-5 w-5" />{isSubmitting ? 'Salvando...' : 'Cadastrar Veículo Final'}</button></div>
+            <div className="flex justify-between pt-6 border-t border-white/10"><button type="button" onClick={() => document.getElementById('tab-btn-photos')?.click()} className="text-white/60">Voltar</button><button type="submit" disabled={isSubmitting} className="bg-green-500 text-white px-10 py-3 rounded-2xl font-bold flex items-center gap-2"><ShieldCheck className="h-5 w-5" />{isSubmitting ? 'Salvando...' : initialData?.id ? 'Salvar Alterações' : 'Cadastrar Veículo Final'}</button></div>
         </div>
     )
 
     const PhotosForm = (
         <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-            <div className="w-full h-64 border-2 border-dashed border-white/20 hover:border-[#FF4D00]/50 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer" onClick={() => fileInputRef.current?.click()} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (e.dataTransfer.files) addFiles(Array.from(e.dataTransfer.files)) }}><input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} /><UploadCloud className="h-8 w-8 text-[#FF4D00] mb-4" /><p className="text-white">Clique ou arraste imagens aqui</p></div>
+            <div className="w-full h-64 border-2 border-dashed border-white/20 hover:border-[#FF4D00]/50 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer" onClick={() => fileInputRef.current?.click()} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (e.dataTransfer.files) addFiles(Array.from(e.dataTransfer.files)) }}><input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} /><UploadCloud className="h-8 w-8 text-[#FF4D00] mb-4" /><p className="text-white text-lg font-medium">Clique ou arraste imagens aqui</p><p className="text-white/50 text-sm mt-2 text-center">Formatos aceitos: JPG, PNG, WEBP (Máx 5MB).<br />Resolução ideal: 1920x1080px (Proporção 16:9)</p></div>
             <div>
                 <h4 className="text-white/70 mb-4">Fotos Anexadas</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" onDragOver={e => e.preventDefault()}>

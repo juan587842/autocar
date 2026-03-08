@@ -123,3 +123,27 @@ export async function uploadVehiclePhoto(formData: FormData) {
         return { success: false, error: e.message || 'Erro interno.' }
     }
 }
+
+export async function deleteVehiclePhoto(photoId: string) {
+    try {
+        const supabase = await createClient()
+
+        // Obter a URL da foto para tentar remover do bucket
+        const { data: photoData } = await supabase.from('vehicle_photos').select('url').eq('id', photoId).single()
+
+        if (photoData && photoData.url) {
+            const urlParts = photoData.url.split('/')
+            const fileName = urlParts.slice(-2).join('/') // Pega {vehicleId}/{filename}
+            await supabase.storage.from('vehicle-photos').remove([fileName])
+        }
+
+        const { error } = await supabase.from('vehicle_photos').delete().eq('id', photoId)
+
+        if (error) throw new Error(error.message)
+
+        return { success: true }
+    } catch (e: any) {
+        return { success: false, error: e.message || 'Erro ao deletar foto.' }
+    }
+}
+
