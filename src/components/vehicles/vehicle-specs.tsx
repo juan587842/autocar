@@ -35,6 +35,9 @@ const transmissionLabels: Record<string, string> = {
 }
 
 export function VehicleSpecs({ vehicle, customFields }: SpecsProps) {
+    const customEngineInfo = customFields.find(f => f.label.toLowerCase() === 'motor')?.value;
+    const remainingCustomFields = customFields.filter(f => f.label.toLowerCase() !== 'motor');
+
     const specs = [
         { icon: Calendar, label: 'Ano', value: `${vehicle.year_fab}/${vehicle.year_model}` },
         { icon: Gauge, label: 'Quilometragem', value: vehicle.mileage != null ? `${new Intl.NumberFormat('pt-BR').format(vehicle.mileage)} km` : '0 km' },
@@ -43,7 +46,7 @@ export function VehicleSpecs({ vehicle, customFields }: SpecsProps) {
         { icon: Palette, label: 'Cor', value: vehicle.color || '—' },
         { icon: Hash, label: 'Final da Placa', value: vehicle.plate_end || '—' },
         { icon: Car, label: 'Portas', value: vehicle.doors ? `${vehicle.doors}` : '—' },
-        { icon: FileText, label: 'Motor', value: vehicle.engine || '—' },
+        { icon: FileText, label: 'Motor', value: vehicle.engine || customEngineInfo || '—' },
     ]
 
     return (
@@ -66,11 +69,11 @@ export function VehicleSpecs({ vehicle, customFields }: SpecsProps) {
             </div>
 
             {/* Custom Fields */}
-            {customFields.length > 0 && (
+            {remainingCustomFields.length > 0 && (
                 <div>
                     <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">Extras</h3>
                     <div className="flex flex-wrap gap-2">
-                        {customFields.map((f) => (
+                        {remainingCustomFields.map((f) => (
                             <span
                                 key={f.label}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)] text-xs font-medium border border-[var(--color-accent)]/20"
