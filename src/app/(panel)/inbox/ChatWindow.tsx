@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Conversation } from './InboxLayout'
-import { ChevronLeft, Send, Bot, User, CheckCircle2, AlertCircle, Info } from 'lucide-react'
+import { ChevronLeft, Send, Bot, User, CheckCircle2, AlertCircle, Info, Wrench } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { sendMessage } from './actions'
@@ -22,6 +22,7 @@ type Message = {
     sender_type: 'customer' | 'ai' | 'agent' | 'seller'
     created_at: string
     status: string
+    metadata?: any
 }
 
 export default function ChatWindow({ conversation, currentUser, onBack, onToggleDetails, showDetails }: ChatWindowProps) {
@@ -341,6 +342,18 @@ export default function ChatWindow({ conversation, currentUser, onBack, onToggle
                                             )}
 
                                             <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
+
+                                            {/* Logs de Tool Calls Ocultos para Transparência */}
+                                            {msg.metadata?.tool_calls && Array.isArray(msg.metadata.tool_calls) && msg.metadata.tool_calls.length > 0 && (
+                                                <div className="mt-2.5 flex flex-wrap gap-1.5 border-t border-white/5 pt-2">
+                                                    {msg.metadata.tool_calls.map((tool: string, i: number) => (
+                                                        <span key={i} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/20 border border-white/10 text-[9px] font-mono text-white/50 lowercase tracking-wider">
+                                                            <Wrench className="w-2.5 h-2.5 opacity-70" />
+                                                            {tool}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
 
                                             <div className={`text-[10px] mt-1.5 flex items-center justify-end gap-1 ${isSelf ? 'text-[#FF4D00]/60' : 'text-white/40'}`}>
                                                 {format(msgDate, 'HH:mm')}
