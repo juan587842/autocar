@@ -26,10 +26,12 @@ export function Tabs({ tabs, defaultTabId }: TabsProps) {
                     return (
                         <button
                             key={tab.id}
+                            id={`tab-btn-${tab.id}`}
+                            type="button"
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-all whitespace-nowrap border-b-2 relative ${isActive
-                                    ? 'text-white border-[#FF4D00]'
-                                    : 'text-white/40 border-transparent hover:text-white/80 hover:border-white/20'
+                                ? 'text-white border-[#FF4D00]'
+                                : 'text-white/40 border-transparent hover:text-white/80 hover:border-white/20'
                                 }`}
                         >
                             {/* Inner Glow quando ativo */}
