@@ -120,7 +120,8 @@ export function VehicleForm({ initialData, submitAction, uploadAction, deleteAct
                 const remainingIds = files.map(f => f.id)
                 const removedPhotos = initialPhotos.filter((p: any) => !remainingIds.includes(p.id))
                 for (const rp of removedPhotos) {
-                    await deleteAction(rp.id)
+                    const dRes = await deleteAction(rp.id)
+                    if (dRes && !dRes.success) throw new Error(dRes.error)
                 }
             }
 
@@ -133,7 +134,8 @@ export function VehicleForm({ initialData, submitAction, uploadAction, deleteAct
                         fd.append('file', f.file)
                         fd.append('vehicleId', vehicleId)
                         fd.append('isCover', (i === 0).toString())
-                        await uploadAction(fd)
+                        const uRes = await uploadAction(fd)
+                        if (uRes && !uRes.success) throw new Error(uRes.error)
                     }
                 }
             }
