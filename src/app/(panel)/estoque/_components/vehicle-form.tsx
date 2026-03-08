@@ -18,8 +18,8 @@ export function VehicleForm({ initialData, submitAction, uploadAction }: { initi
         year_model: initialData?.year_model || '',
         price: initialData?.price || '',
         mileage: initialData?.mileage || '',
-        transmission: initialData?.transmission || 'Automático',
-        fuel: initialData?.fuel || 'Flex',
+        transmission: initialData?.transmission || 'automatic',
+        fuel: initialData?.fuel || 'flex',
         color: initialData?.color || '',
         description: initialData?.description || '', // <-- NEW DETALHES FIELD
         plate_end: initialData?.plate_end || '',
@@ -137,8 +137,8 @@ export function VehicleForm({ initialData, submitAction, uploadAction }: { initi
                 <div className="space-y-2"><label className="text-sm font-medium text-white/70">Ano Fab / Mod</label><div className="flex gap-2"><input name="year_fab" value={formData.year_fab} onChange={handleBasicChange} type="number" className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white" /><span className="text-white/40 flex items-center">/</span><input name="year_model" value={formData.year_model} onChange={handleBasicChange} type="number" className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white" /></div></div>
                 <div className="space-y-2"><label className="text-sm font-medium text-white/70">Preço</label><input name="price" value={formData.price} onChange={handleBasicChange} type="number" className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white" /></div>
                 <div className="space-y-2"><label className="text-sm font-medium text-white/70">KM</label><input name="mileage" value={formData.mileage} onChange={handleBasicChange} type="number" className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white" /></div>
-                <div className="space-y-2"><label className="text-sm font-medium text-white/70">Câmbio</label><select name="transmission" value={formData.transmission} onChange={handleBasicChange} className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white"><option value="Automático">Automático</option><option value="Manual">Manual</option></select></div>
-                <div className="space-y-2"><label className="text-sm font-medium text-white/70">Combustível</label><select name="fuel" value={formData.fuel} onChange={handleBasicChange} className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white"><option value="Flex">Flex</option><option value="Gasolina">Gasolina</option><option value="Etanol">Etanol</option><option value="Diesel">Diesel</option><option value="Híbrido">Híbrido</option></select></div>
+                <div className="space-y-2"><label className="text-sm font-medium text-white/70">Câmbio</label><select name="transmission" value={formData.transmission} onChange={handleBasicChange} className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white"><option value="automatic">Automático</option><option value="manual">Manual</option><option value="cvt">CVT</option><option value="automated">Automatizado</option></select></div>
+                <div className="space-y-2"><label className="text-sm font-medium text-white/70">Combustível</label><select name="fuel" value={formData.fuel} onChange={handleBasicChange} className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white"><option value="flex">Flex</option><option value="gasoline">Gasolina</option><option value="ethanol">Etanol</option><option value="diesel">Diesel</option><option value="hybrid">Híbrido</option><option value="electric">Elétrico</option></select></div>
                 <div className="space-y-2"><label className="text-sm font-medium text-white/70">Cor</label><input name="color" value={formData.color} onChange={handleBasicChange} type="text" className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white" /></div>
 
                 {/* NEW DETALHES TEXTAREA DIRECTLY IN BASIC FORM */}
