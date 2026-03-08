@@ -21,8 +21,8 @@ function getSupabase() {
 export const searchVehicles = tool({
     description: 'ÚNICA ferramenta para checar disponibilidade de veículos, estoque ou procurar opções. Use para encontrar qualquer carro. Obrigatório o uso antes de confirmar ou negar estoque.',
     inputSchema: z.object({
-        brand: z.string().optional().describe('Marca do veículo (ex: Toyota, Honda). Passe apenas UMA marca por chamada. Para múltiplas, faça múltiplas chamadas à tool.'),
-        model: z.string().optional().describe('Modelo do veículo (ex: Corolla, Civic, Onix). Passe APENAS UM modelo por chamada. NUNCA use vírgulas. Para múltiplos carros, faça chamadas separadas para cada um.'),
+        brand: z.array(z.string()).optional().describe('Marcas a pesquisar. Ex: ["Toyota", "Honda"]. Envie todas as marcas desejadas no array.'),
+        model: z.array(z.string()).optional().describe('Modelos a pesquisar. Ex: ["Corolla", "Nivus", "Polo"]. Envie TODOS os modelos desejados no array para buscar múltiplos carros de uma vez.'),
         minPrice: z.number().optional().describe('Preço mínimo em reais'),
         maxPrice: z.number().optional().describe('Preço máximo em reais'),
         minYear: z.number().optional().describe('Ano mínimo de fabricação'),
@@ -41,19 +41,13 @@ export const searchVehicles = tool({
             .order('price', { ascending: true })
             .limit(10)
 
-        if (input.brand) {
-            const brands = input.brand.split(',').map(s => s.trim()).filter(Boolean)
-            if (brands.length > 0) {
-                const orQuery = brands.map(b => `brand.ilike.%${b}%`).join(',')
-                query = query.or(orQuery)
-            }
+        if (input.brand && input.brand.length > 0) {
+            const orQuery = input.brand.map((b: string) => `brand.ilike.%${b}%`).join(',')
+            query = query.or(orQuery)
         }
-        if (input.model) {
-            const models = input.model.split(',').map(s => s.trim()).filter(Boolean)
-            if (models.length > 0) {
-                const orQuery = models.map(m => `model.ilike.%${m}%`).join(',')
-                query = query.or(orQuery)
-            }
+        if (input.model && input.model.length > 0) {
+            const orQuery = input.model.map((m: string) => `model.ilike.%${m}%`).join(',')
+            query = query.or(orQuery)
         }
         if (input.minPrice) query = query.gte('price', input.minPrice)
         if (input.maxPrice) query = query.lte('price', input.maxPrice)
