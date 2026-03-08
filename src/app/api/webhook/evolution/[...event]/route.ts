@@ -108,7 +108,97 @@ async function handleMessageReceived(data: any, supabase: any) {
         else if (msgContent.contactMessage) { contentType = 'contact' }
         else if (msgContent.locationMessage) { contentType = 'location' }
 
-        // 1. Resolver ou Criar Conversation
+        // 1. Garantir que o Customer Existe
+        let customerId: string
+        const { data: existingCustomer } = await supabase
+            .from('customers')
+            .select('id')
+            .eq('phone', phone)
+            .limit(1)
+            .single()
+
+        if (existingCustomer) {
+            customerId = existingCustomer.id
+        } else {
+            const pushName = msg.pushName || `Lead WhatsApp ${phone}`
+            const { data: newCustomer, error: custErr } = await supabase
+                .from('customers')
+                .insert({
+                    full_name: pushName,
+                    phone,
+                    source: 'whatsapp',
+                    is_active: true,
+                    notes: `Lead capturado automaticamente via WhatsApp em ${new Date().toLocaleDateString('pt-BR')}`,
+                })
+                .select('id')
+                .single()
+
+            if (custErr || !newCustomer) {
+                console.error('[Webhook ByEvent] Erro ao criar cliente:', custErr)
+                continue // Abortar se não conseguir criar cliente
+            }
+            customerId = newCustomer.id
+            console.log(`[Webhook ByEvent] ✅ Novo cliente cadastrado: ${pushName} (${phone}) | ID: ${customerId}`)
+
+            fetchProfilePicture(phone).then(async (res) => {
+                const profileUrl = res?.data?.profilePictureUrl || res?.data?.picture
+                if (profileUrl) {
+                    await supabase.from('customers').update({
+                        metadata: { profilePictureUrl: profileUrl }
+                    }).eq('id', customerId)
+                    await supabase.from('conversations').update({
+                        metadata: { remoteJid: key.remoteJid, pushName, profilePictureUrl: profileUrl }
+                    }).eq('phone', phone)
+                }
+            }).catch(err => console.error('[Webhook ByEvent] Erro ao buscar foto:', err.message))
+        }
+
+        // 2. Garantir que o Cliente tem um Deal Ativo (Não Perdida e Não Ganha)
+        // Por simplificação, vamos apenas checar se existe ALGUM deal ativo.
+        // Considerando que as stages 'Ganha' e 'Perdida' são finais,
+        // vamos checar se o deal mais recente está nelas. Se não tiver deal ou estiver nessas, cria novo.
+        const { data: latestDeal } = await supabase
+            .from('deals')
+            .select(`
+                id,
+                stage_id,
+                deal_stages!inner(name)
+            `)
+            .eq('customer_id', customerId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single()
+
+        const isDealActive = latestDeal &&
+            latestDeal.deal_stages?.name !== 'Ganha' &&
+            latestDeal.deal_stages?.name !== 'Perdida'
+
+        if (!isDealActive) {
+            const { data: leadStage } = await supabase
+                .from('deal_stages')
+                .select('id')
+                .eq('name', 'Lead Novo')
+                .limit(1)
+                .single()
+
+            if (leadStage) {
+                const { error: dealErr } = await supabase
+                    .from('deals')
+                    .insert({
+                        customer_id: customerId,
+                        stage_id: leadStage.id,
+                        notes: `Recapturado automaticamente via WhatsApp. Mensagem: "${text.substring(0, 100)}"`,
+                    })
+
+                if (dealErr) {
+                    console.error('[Webhook ByEvent] Erro ao criar deal:', dealErr)
+                } else {
+                    console.log(`[Webhook ByEvent] ✅ Novo Deal criado no funil "Lead Novo" para cliente ${customerId}`)
+                }
+            }
+        }
+
+        // 3. Garantir que tem uma Conversation Aberta
         let conversationId: string
         const { data: existingConv } = await supabase
             .from('conversations')
@@ -122,74 +212,6 @@ async function handleMessageReceived(data: any, supabase: any) {
         if (existingConv) {
             conversationId = existingConv.id
         } else {
-            // === AUTO-REGISTRO DE LEAD ===
-            let customerId: string | null = null
-            const { data: existingCustomer } = await supabase
-                .from('customers')
-                .select('id')
-                .eq('phone', phone)
-                .limit(1)
-                .single()
-
-            if (existingCustomer) {
-                customerId = existingCustomer.id
-            } else {
-                const pushName = msg.pushName || `Lead WhatsApp ${phone}`
-                const { data: newCustomer, error: custErr } = await supabase
-                    .from('customers')
-                    .insert({
-                        full_name: pushName,
-                        phone,
-                        source: 'whatsapp',
-                        is_active: true,
-                        notes: `Lead capturado automaticamente via WhatsApp em ${new Date().toLocaleDateString('pt-BR')}`,
-                    })
-                    .select('id')
-                    .single()
-
-                if (custErr || !newCustomer) {
-                    console.error('[Webhook ByEvent] Erro ao criar cliente:', custErr)
-                } else {
-                    customerId = newCustomer.id
-                    console.log(`[Webhook ByEvent] ✅ Novo cliente cadastrado: ${pushName} (${phone}) | ID: ${customerId}`)
-
-                    fetchProfilePicture(phone).then(async (res) => {
-                        const profileUrl = res?.data?.profilePictureUrl || res?.data?.picture
-                        if (profileUrl) {
-                            await supabase.from('customers').update({
-                                metadata: { profilePictureUrl: profileUrl }
-                            }).eq('id', customerId)
-                            await supabase.from('conversations').update({
-                                metadata: { remoteJid: key.remoteJid, pushName, profilePictureUrl: profileUrl }
-                            }).eq('phone', phone)
-                        }
-                    }).catch(err => console.error('[Webhook ByEvent] Erro ao buscar foto:', err.message))
-
-                    const { data: leadStage } = await supabase
-                        .from('deal_stages')
-                        .select('id')
-                        .eq('name', 'Lead Novo')
-                        .limit(1)
-                        .single()
-
-                    if (leadStage) {
-                        const { error: dealErr } = await supabase
-                            .from('deals')
-                            .insert({
-                                customer_id: customerId,
-                                stage_id: leadStage.id,
-                                notes: `Lead capturado automaticamente via WhatsApp. Primeira mensagem: "${text.substring(0, 100)}"`,
-                            })
-
-                        if (dealErr) {
-                            console.error('[Webhook ByEvent] Erro ao criar deal:', dealErr)
-                        } else {
-                            console.log(`[Webhook ByEvent] ✅ Deal criado no funil "Lead Novo" para cliente ${customerId}`)
-                        }
-                    }
-                }
-            }
-
             const pushNameParam = msg.pushName || `Lead WhatsApp ${phone}`
             const { data: newConv, error: convErr } = await supabase
                 .from('conversations')

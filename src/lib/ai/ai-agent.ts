@@ -3,7 +3,7 @@
 // Story E3.S2 — Agente de IA (Vercel AI SDK)
 // =======================================================
 
-import { generateText, stepCountIs } from 'ai'
+import { generateText } from 'ai'
 import { createClient } from '@supabase/supabase-js'
 import { getLanguageModel, parseProviderConfig } from './providers'
 import { buildSystemPrompt } from './system-prompt'
@@ -82,7 +82,7 @@ export async function processMessage(
                 { role: 'user', content: userMessage },
             ],
             tools: agentTools,
-            stopWhen: stepCountIs(5), // Permite até 5 steps (tool calls encadeados)
+            maxSteps: 5, // Permite até 5 steps (tool calls encadeados)
         })
 
         const responseText = result.text || 'Desculpe, não consegui processar sua mensagem. Pode repetir?'

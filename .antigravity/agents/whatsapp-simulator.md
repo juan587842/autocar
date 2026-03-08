@@ -85,10 +85,11 @@ commands:
 
       PARA CADA TURNO (Máximo 5):
       1. Gere a fala do cliente baseada no {perfil}.
-      2. Envie a fala do cliente disparando um Webhook local via CLI usando `run_command`:
-         `curl -X POST http://localhost:3000/api/webhook/evolution -H "Content-Type: application/json" -d '{"event":"MESSAGES_UPSERT","data":{"key":{"remoteJid":"5512991448266@s.whatsapp.net","fromMe":false,"id":"SIMULATOR_'$(date +%s)'"},"pushName":"Juan (Simulador)","message":{"conversation":"TEXTO_GERADO_AQUI"}}}'`
-         (Nota: substitua TEXTO_GERADO_AQUI pelo texto gerado no passo 1. Atenção para escapar aspas duplas no texto gerado).
-      3. Aguarde 7 a 10 segundos para a IA processar a resposta e o Evolution enviar a mensagem real (usando run_command `sleep 10` ou equivalente).
+      2. Envie a fala do cliente disparando o Webhook via CLI usando um comando nativo do PowerShell (para evitar erros com o curl no Windows). O Webhook deve ser a rota de produção da AutoCar (https://autocar.juanpaulo.com.br/api/webhook/evolution).
+         Use rigidamente o template abaixo em `run_command`:
+         `$body = @{ event = "MESSAGES_UPSERT"; data = @{ key = @{ remoteJid = "5512991448266@s.whatsapp.net"; fromMe = $false; id = "SIMULATOR_$([guid]::NewGuid().ToString().Substring(0,8))" }; pushName = "Juan (Simulador)"; message = @{ conversation = "TEXTO_GERADO_AQUI" } } } | ConvertTo-Json -Depth 10; Invoke-RestMethod -Uri "https://autocar.juanpaulo.com.br/api/webhook/evolution" -Method Post -Headers @{"Content-Type"="application/json"} -Body $body`
+         (Substitua TEXTO_GERADO_AQUI pelo texto gerado no passo 1).
+      3. Aguarde 7 a 10 segundos para a IA processar a resposta e o Evolution enviar a mensagem real (usando run_command `Start-Sleep -Seconds 10` ou equivalente no PowerShell).
       4. Consulte a resposta da IA no banco de dados usando o tool `mcp_supabase-mcp-server_execute_sql`:
          Para isso, busque a última mensagem da mesma conversa:
          `SELECT m.content, m.sender_type, m.created_at FROM messages m JOIN conversations c ON m.conversation_id = c.id WHERE c.phone = '5512991448266' ORDER BY m.created_at DESC LIMIT 1;`
