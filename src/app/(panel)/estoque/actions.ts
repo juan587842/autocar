@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function createVehicle(data: any) {
+export async function upsertVehicle(data: any) {
     const supabase = await createClient()
 
     // Geração automática do slug: marca-modelo-ano
@@ -16,13 +16,22 @@ export async function createVehicle(data: any) {
     const { data: existing } = await supabase.from('vehicles').select('id').eq('slug', baseSlug).single()
     const finalSlug = existing ? `${baseSlug}-${Date.now()}` : baseSlug
 
-    const { data: vehicle, error } = await supabase.from('vehicles').insert([
-        {
-            ...data,
-            slug: finalSlug,
-            status: data.status || 'available'
-        }
-    ]).select().single()
+    const payload = {
+        ...data,
+        slug: data.id ? data.slug || finalSlug : finalSlug,
+        status: data.status || 'available'
+    }
+
+    let query = supabase.from('vehicles')
+    let result
+
+    if (data.id) {
+        result = await query.update(payload).eq('id', data.id).select().single()
+    } else {
+        result = await query.insert([payload]).select().single()
+    }
+
+    const { data: vehicle, error } = result
 
     if (error) {
         return { success: false, error: error.message }

@@ -51,7 +51,7 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
                 <div className="flex gap-2 items-center w-full sm:w-auto mt-4 sm:mt-0">
                     <AdGenerator vehicleId={v.id} />
                     <Link
-                        href={`/estoque/novo`}
+                        href={`/estoque/${v.id}/edit`}
                         className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-medium transition-all text-white"
                     >
                         <Edit3 className="w-4 h-4" /> Editar
