@@ -21,6 +21,8 @@ export function VehicleForm({ initialData, submitAction, uploadAction, deleteAct
         transmission: initialData?.transmission || 'automatic',
         fuel: initialData?.fuel || 'flex',
         color: initialData?.color || '',
+        engine: initialData?.engine || '',
+        doors: initialData?.doors || '',
         description: initialData?.description || '', // <-- NEW DETALHES FIELD
         plate_end: initialData?.plate_end || '',
         status: initialData?.status || 'available',
@@ -103,6 +105,7 @@ export function VehicleForm({ initialData, submitAction, uploadAction, deleteAct
                 year_model: parseInt(formData.year_model) || null,
                 price: parseFloat(formData.price) || null,
                 mileage: parseInt(formData.mileage) || null,
+                doors: parseInt(formData.doors) || null,
                 features,
                 custom_fields: Object.keys(customObj).length > 0 ? customObj : null,
                 id: initialData?.id || undefined // if absent, server creates it
@@ -162,6 +165,8 @@ export function VehicleForm({ initialData, submitAction, uploadAction, deleteAct
                 <div className="space-y-2"><label className="text-sm font-medium text-white/70">Câmbio</label><div className="relative"><select name="transmission" value={formData.transmission} onChange={handleBasicChange} className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/50"><option value="automatic" className="bg-[#0A0A0A] text-white">Automático</option><option value="manual" className="bg-[#0A0A0A] text-white">Manual</option><option value="cvt" className="bg-[#0A0A0A] text-white">CVT</option><option value="automated" className="bg-[#0A0A0A] text-white">Automatizado</option></select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50 pointer-events-none" /></div></div>
                 <div className="space-y-2"><label className="text-sm font-medium text-white/70">Combustível</label><div className="relative"><select name="fuel" value={formData.fuel} onChange={handleBasicChange} className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/50"><option value="flex" className="bg-[#0A0A0A] text-white">Flex</option><option value="gasoline" className="bg-[#0A0A0A] text-white">Gasolina</option><option value="ethanol" className="bg-[#0A0A0A] text-white">Etanol</option><option value="diesel" className="bg-[#0A0A0A] text-white">Diesel</option><option value="hybrid" className="bg-[#0A0A0A] text-white">Híbrido</option><option value="electric" className="bg-[#0A0A0A] text-white">Elétrico</option></select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50 pointer-events-none" /></div></div>
                 <div className="space-y-2"><label className="text-sm font-medium text-white/70">Cor</label><input name="color" value={formData.color} onChange={handleBasicChange} type="text" className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white" /></div>
+                <div className="space-y-2"><label className="text-sm font-medium text-white/70">Motor</label><input name="engine" value={formData.engine} onChange={handleBasicChange} type="text" placeholder="Ex: 1.5 Turbo" className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white" /></div>
+                <div className="space-y-2"><label className="text-sm font-medium text-white/70">Portas</label><input name="doors" value={formData.doors} onChange={handleBasicChange} type="number" placeholder="Ex: 4" className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white" /></div>
 
                 {/* NEW DETALHES TEXTAREA DIRECTLY IN BASIC FORM */}
                 <div className="space-y-2 lg:col-span-3">
