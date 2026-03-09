@@ -36,7 +36,10 @@ export const searchVehicles = tool({
 
         let query = supabase
             .from('vehicles')
-            .select('id, brand, model, year_fab, year_model, price, mileage, fuel, transmission, color, status, slug')
+            .select(`
+                id, brand, model, year_fab, year_model, price, mileage, fuel, transmission, color, status, slug,
+                vehicle_photos ( url, is_cover )
+            `)
             .eq('status', 'available')
             .order('price', { ascending: true })
             .limit(10)
@@ -64,16 +67,22 @@ export const searchVehicles = tool({
         }
 
         return {
-            vehicles: (data || []).map(v => ({
-                id: v.id,
-                nome: `${v.brand} ${v.model} ${v.year_fab}/${v.year_model}`,
-                preco: `R$ ${Number(v.price).toLocaleString('pt-BR')}`,
-                km: v.mileage ? `${Number(v.mileage).toLocaleString('pt-BR')} km` : 'Não informado',
-                combustivel: v.fuel || 'Flex',
-                cambio: v.transmission || 'Não informado',
-                cor: v.color || 'Não informada',
-                slug: v.slug,
-            })),
+            vehicles: (data || []).map(v => {
+                const photos = v.vehicle_photos as any[] || [];
+                const mainImage = photos.find(p => p.is_cover)?.url || photos[0]?.url || '';
+
+                return {
+                    id: v.id,
+                    nome: `${v.brand} ${v.model} ${v.year_fab}/${v.year_model}`,
+                    preco: `R$ ${Number(v.price).toLocaleString('pt-BR')}`,
+                    km: v.mileage ? `${Number(v.mileage).toLocaleString('pt-BR')} km` : 'Não informado',
+                    combustivel: v.fuel || 'Flex',
+                    cambio: v.transmission || 'Não informado',
+                    cor: v.color || 'Não informada',
+                    slug: v.slug,
+                    imagem: mainImage
+                }
+            }),
             count: data?.length || 0,
             message: data?.length ? `Encontrei ${data.length} veículo(s) disponível(is).` : 'Nenhum veículo encontrado com esses critérios.',
         }
