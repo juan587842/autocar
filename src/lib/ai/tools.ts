@@ -108,9 +108,9 @@ export const sendVehicleImages = tool({
         // Buscar fotos do veículo
         const { data: photos, error } = await supabase
             .from('vehicle_photos')
-            .select('url, is_cover, position')
+            .select('url, is_cover')
             .eq('vehicle_id', input.vehicleId)
-            .order('position', { ascending: true })
+            .order('is_cover', { ascending: false })
             .limit(5)
 
         if (error || !photos || photos.length === 0) {
