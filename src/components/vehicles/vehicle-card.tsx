@@ -40,6 +40,18 @@ export function VehicleCard({
     const { selectedVehicleIds, toggleVehicle } = useComparatorStore()
     const isSelected = selectedVehicleIds.includes(id)
 
+    const formatBrand = (b: string) => {
+        if (!b) return ''
+        const lower = b.toLowerCase()
+        if (['bmw', 'jac', 'ram'].includes(lower)) return lower.toUpperCase()
+        if (lower === 'caoa_chery' || lower === 'caoa chery') return 'CAOA Chery'
+        if (lower === 'mercedes') return 'Mercedes-Benz'
+        if (lower === 'land_rover' || lower === 'land rover') return 'Land Rover'
+        return lower.charAt(0).toUpperCase() + lower.slice(1)
+    }
+
+    const formattedBrand = formatBrand(brand)
+
     const formattedPrice = new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL',
@@ -77,7 +89,7 @@ export function VehicleCard({
                     {imageUrl ? (
                         <img
                             src={imageUrl}
-                            alt={`${brand} ${model}`}
+                            alt={`${formattedBrand} ${model}`}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                     ) : (
@@ -103,7 +115,7 @@ export function VehicleCard({
                 <div className="p-4 space-y-3 relative z-10">
                     <div>
                         <h3 className="text-base font-bold text-[var(--color-glass-text)] group-hover:text-[var(--color-accent)] transition-colors" style={{ fontFamily: 'var(--font-display)' }}>
-                            {brand} {model}
+                            {formattedBrand} {model}
                         </h3>
                         <p className="text-sm text-[var(--color-glass-text-dim)]">
                             {yearFab}/{yearModel}

@@ -83,6 +83,18 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
         ? Object.entries(vehicle.custom_fields).map(([label, value]) => ({ label, value: value as string }))
         : []
 
+    const formatBrand = (b: string) => {
+        if (!b) return ''
+        const lower = b.toLowerCase()
+        if (['bmw', 'jac', 'ram'].includes(lower)) return lower.toUpperCase()
+        if (lower === 'caoa_chery' || lower === 'caoa chery') return 'CAOA Chery'
+        if (lower === 'mercedes') return 'Mercedes-Benz'
+        if (lower === 'land_rover' || lower === 'land rover') return 'Land Rover'
+        return lower.charAt(0).toUpperCase() + lower.slice(1)
+    }
+
+    const formattedBrand = formatBrand(vehicle.brand)
+
     return (
         <>
             <Header />
@@ -103,7 +115,7 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
                                 <span>/</span>
                             </>
                         )}
-                        <span className="text-[var(--color-text-primary)] font-medium">{vehicle.brand} {vehicle.model}</span>
+                        <span className="text-[var(--color-text-primary)] font-medium">{formattedBrand} {vehicle.model}</span>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -111,7 +123,7 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
                         <div className="lg:col-span-2 space-y-8">
                             <VehicleGallery
                                 photos={vehicle.vehicle_photos || []}
-                                brand={vehicle.brand}
+                                brand={formattedBrand}
                                 model={vehicle.model}
                             />
                             <VehicleSpecs vehicle={vehicle} customFields={customFields} />
@@ -128,7 +140,7 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
                                     <div className="relative z-10">
                                         <div className="flex items-start justify-between gap-2 mb-1">
                                             <h1 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
-                                                {vehicle.brand} {vehicle.model}
+                                                {formattedBrand} {vehicle.model}
                                             </h1>
                                             <Badge variant={vehicle.status === 'available' ? 'success' : 'warning'} dot>
                                                 {vehicle.status === 'available' ? 'Disponível' : 'Reservado'}
@@ -149,7 +161,7 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
 
                                     {/* WhatsApp CTA */}
                                     <div className="relative z-10">
-                                        <WhatsAppButton vehicleName={`${vehicle.brand} ${vehicle.model} ${vehicle.year_fab}/${vehicle.year_model}`} />
+                                        <WhatsAppButton vehicleName={`${formattedBrand} ${vehicle.model} ${vehicle.year_fab}/${vehicle.year_model}`} />
                                     </div>
 
                                     {/* Actions */}
