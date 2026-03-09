@@ -1,11 +1,13 @@
 // =======================================================
-// AI Agent Tools — 6 Tools do Agente de IA
+// AI Agent Tools — Tools do Agente de IA
 // Story E3.S2 — Agente de IA (AI SDK v6)
 // =======================================================
 
 import { tool } from 'ai'
 import { z } from 'zod'
 import { createClient } from '@supabase/supabase-js'
+import { sendMedia } from '@/lib/evolution'
+import { createCalendarEvent } from '@/lib/google-calendar'
 
 // Admin client (sem RLS) para operações do agente
 function getSupabase() {
@@ -89,19 +91,76 @@ export const searchVehicles = tool({
     },
 })
 
+// ============================================
+// 2. sendVehicleImages — Envia fotos reais via WhatsApp
+// ============================================
+export const sendVehicleImages = tool({
+    description: 'Envia as fotos reais de um veículo diretamente no WhatsApp do cliente. Use SEMPRE após encontrar veículos com searchVehicles para enviar as imagens. Isso envia a imagem real, não um link.',
+    inputSchema: z.object({
+        vehicleId: z.string().describe('ID do veículo para enviar as fotos'),
+        phone: z.string().describe('Número do WhatsApp do cliente (o mesmo número da conversa atual, ex: 5512991448266)'),
+        vehicleName: z.string().optional().describe('Nome do veículo para usar como legenda (ex: Honda HR-V 2023/2024)'),
+    }),
+    execute: async (input) => {
+        console.log('[AI Tool] sendVehicleImages input:', input)
+        const supabase = getSupabase()
+
+        // Buscar fotos do veículo
+        const { data: photos, error } = await supabase
+            .from('vehicle_photos')
+            .select('url, is_cover, position')
+            .eq('vehicle_id', input.vehicleId)
+            .order('position', { ascending: true })
+            .limit(5)
+
+        if (error || !photos || photos.length === 0) {
+            console.error('[AI Tool] sendVehicleImages: sem fotos', error?.message)
+            return { sent: false, count: 0, message: 'Não encontrei fotos deste veículo para enviar.' }
+        }
+
+        // Enviar cada foto via Evolution API (sendMedia)
+        const instanceName = process.env.EVOLUTION_INSTANCE_NAME || 'autocar'
+        let sentCount = 0
+
+        for (const photo of photos) {
+            try {
+                const caption = sentCount === 0 && input.vehicleName
+                    ? `📸 ${input.vehicleName}`
+                    : ''
+                await sendMedia(input.phone, photo.url, caption, 'image', instanceName)
+                sentCount++
+                // Pequeno delay entre fotos para não sobrecarregar
+                await new Promise(resolve => setTimeout(resolve, 800))
+            } catch (err: any) {
+                console.error('[AI Tool] sendVehicleImages: erro ao enviar foto', err.message)
+            }
+        }
+
+        return {
+            sent: sentCount > 0,
+            count: sentCount,
+            message: sentCount > 0
+                ? `Enviei ${sentCount} foto(s) do veículo diretamente no WhatsApp do cliente.`
+                : 'Não consegui enviar as fotos. Tente novamente.'
+        }
+    },
+})
+
 // A ferramenta checkAvailability foi removida para reduzir a sobrecarga cognitiva da IA. Todo processo de verificação de estoque e veículos agora ocorre via searchVehicles.
 
 // ============================================
 // 3. scheduleVisit — Agenda visita
 // ============================================
 export const scheduleVisit = tool({
-    description: 'Agenda uma visita do cliente à loja para ver um veículo. Solicite data, horário e nome do cliente.',
+    description: 'Agenda uma visita do cliente à loja para ver um veículo. Solicite nome, email e data/horário do cliente. NÃO peça telefone, pois você já tem o número do WhatsApp.',
     inputSchema: z.object({
         customerName: z.string().describe('Nome completo do cliente'),
-        customerPhone: z.string().describe('Telefone do cliente (com DDD)'),
+        customerEmail: z.string().describe('Email do cliente (para convite no Google Calendar)'),
+        customerPhone: z.string().describe('Número do WhatsApp do cliente (o mesmo número da conversa atual, que você já sabe)'),
         date: z.string().describe('Data da visita no formato YYYY-MM-DD'),
         time: z.string().describe('Horário da visita no formato HH:MM'),
         vehicleId: z.string().optional().describe('ID do veículo de interesse'),
+        vehicleName: z.string().optional().describe('Nome do veículo de interesse (ex: Honda HR-V 2023)'),
         notes: z.string().optional().describe('Observações adicionais'),
     }),
     execute: async (input) => {
@@ -124,7 +183,7 @@ export const scheduleVisit = tool({
             return { scheduled: false, message: 'Nosso horário é de 8h às 18h de segunda a sexta. Podemos ajustar?' }
         }
 
-        // Resolver ou criar customer
+        // Resolver ou criar customer + salvar email
         let customerId: string | null = null
         const { data: existingCustomer } = await supabase
             .from('customers')
@@ -135,12 +194,18 @@ export const scheduleVisit = tool({
 
         if (existingCustomer) {
             customerId = existingCustomer.id
+            // Atualizar email e nome do cliente
+            await supabase
+                .from('customers')
+                .update({ email: input.customerEmail, full_name: input.customerName })
+                .eq('id', customerId)
         } else {
             const { data: newCustomer } = await supabase
                 .from('customers')
                 .insert({
                     full_name: input.customerName,
                     phone: input.customerPhone,
+                    email: input.customerEmail,
                     source: 'whatsapp_ai',
                 })
                 .select('id')
@@ -167,13 +232,43 @@ export const scheduleVisit = tool({
             return { scheduled: false, message: 'Houve um erro ao agendar. Por favor, tente novamente ou fale com um de nossos vendedores.' }
         }
 
+        // Criar evento no Google Calendar com o cliente como convidado
+        let calendarEventCreated = false
+        try {
+            // Buscar o primeiro user admin para usar seu Google Calendar
+            const { data: adminUser } = await supabase
+                .from('user_integrations')
+                .select('user_id')
+                .eq('provider', 'google_calendar')
+                .eq('is_active', true)
+                .limit(1)
+                .single()
+
+            if (adminUser) {
+                const endAt = new Date(scheduledAt.getTime() + 30 * 60 * 1000) // +30 min
+                const vehicleInfo = input.vehicleName || 'Veículo'
+
+                await createCalendarEvent(adminUser.user_id, {
+                    summary: `🚗 Visita: ${input.customerName} — ${vehicleInfo}`,
+                    description: `Visita agendada via WhatsApp (IA).\nCliente: ${input.customerName}\nEmail: ${input.customerEmail}\nTelefone: ${input.customerPhone}\nVeículo: ${vehicleInfo}`,
+                    startDateTime: scheduledAt.toISOString(),
+                    endDateTime: endAt.toISOString(),
+                    attendees: [input.customerEmail],
+                })
+                calendarEventCreated = true
+            }
+        } catch (calErr: any) {
+            console.error('[AI Tool] scheduleVisit: erro ao criar evento no Google Calendar', calErr.message)
+        }
+
         const dateFormatted = scheduledAt.toLocaleDateString('pt-BR')
         const timeFormatted = scheduledAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
         return {
             scheduled: true,
             appointmentId: appointment?.id,
-            message: `✅ Visita agendada com sucesso!\n\n📅 Data: ${dateFormatted}\n🕐 Horário: ${timeFormatted}\n👤 Nome: ${input.customerName}\n\nEstamos aguardando sua visita! Se precisar reagendar, é só avisar.`,
+            calendarInvite: calendarEventCreated,
+            message: `✅ Visita agendada com sucesso!\n\n📅 Data: ${dateFormatted}\n🕐 Horário: ${timeFormatted}\n👤 Nome: ${input.customerName}${calendarEventCreated ? '\n📬 Convite enviado para: ' + input.customerEmail : ''}\n\nEstamos aguardando sua visita! Se precisar reagendar, é só avisar.`,
         }
     },
 })
@@ -410,6 +505,7 @@ export const checkOfferStatus = tool({
 // Export all tools as object for AI SDK
 export const agentTools = {
     searchVehicles,
+    sendVehicleImages,
     scheduleVisit,
     getStoreInfo,
     saveInterest,

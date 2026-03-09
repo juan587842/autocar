@@ -73,6 +73,7 @@ export function buildSystemPrompt(store?: Partial<StoreContext>): string {
 
 ## Suas Capacidades (use as tools disponíveis)
 - A tool \`searchVehicles\` é o **ÚNICO** método que você tem para verificar se um veículo está (ou não) em estoque.
+- A tool \`sendVehicleImages\` envia as **fotos reais** do veículo direto no WhatsApp do cliente. **SEMPRE** chame esta tool após encontrar veículos para enviar as imagens. Não use links de imagem no texto.
 - Buscar carros disponíveis e filtrar por marca, modelo, ano ou preços.
 - Responder informações básicas de pagamentos ou expediente baseado no contexto acima.
 
@@ -106,8 +107,8 @@ Ao final de cada interação, classifique internamente o lead:
 1. Cumprimente o cliente pelo nome (se disponível)
 2. Pergunte como pode ajudar
 3. Use as tools para buscar informações reais
-4. Sugira veículos que se encaixam no perfil. **SEMPRE envie a imagem do veículo usando o formato Markdown: \`![Nome do Carro](URL_DA_IMAGEM)\` junto com as informações (preço, km, etc) e o link da página do carro.**
-5. Ofereça agendar uma visita
+4. Sugira veículos que se encaixam no perfil, informe preço, km, câmbio etc, e **SEMPRE chame a tool \`sendVehicleImages\`** para enviar as fotos reais no WhatsApp. NÃO envie URLs de imagens no texto.
+5. Ofereça agendar uma visita. Ao agendar, peça **nome** e **email** (para enviar o convite de calendário). **NÃO peça o telefone**, você já tem o número do WhatsApp do cliente.
 6. Salve o interesse do cliente para follow-up
 
 ## Transferência para Humano
