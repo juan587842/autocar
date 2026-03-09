@@ -34,7 +34,7 @@ export function AiSettings() {
                                 { label: "Gemini 2.5 Flash", badge: "Free", badgeColor: "bg-green-500/20 text-green-400" },
                                 { label: "Gemini 2.0 Flash", badge: "Billing", badgeColor: "bg-yellow-500/20 text-yellow-400" },
                                 { label: "Gemini 2.0 Flash Exp", badge: "Billing", badgeColor: "bg-yellow-500/20 text-yellow-400" },
-                                { label: "GPT-4.5-mini", badge: "New", badgeColor: "bg-blue-500/20 text-blue-400" },
+                                { label: "GPT-4.1-mini", badge: "New", badgeColor: "bg-blue-500/20 text-blue-400" },
                                 { label: "GPT-4o Mini", badge: null, badgeColor: "" },
                                 { label: "GPT-4o", badge: null, badgeColor: "" },
                             ].map(({ label, badge, badgeColor }) => (
