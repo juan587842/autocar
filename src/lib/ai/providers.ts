@@ -105,9 +105,10 @@ export function parseProviderConfig(aiModel?: string | null): AIProviderConfig {
 
     if (lower.includes('gpt')) {
         const normalized = lower.replace(/\s+/g, '-')
-        const modelId = normalized.includes('gpt-4o-mini') ? 'gpt-4o-mini'
-            : normalized.includes('gpt-4o') ? 'gpt-4o'
-                : 'gpt-4o-mini'
+        const modelId = normalized.includes('gpt-4.5-mini') ? 'gpt-4.5-mini'
+            : normalized.includes('gpt-4o-mini') ? 'gpt-4o-mini'
+                : normalized.includes('gpt-4o') ? 'gpt-4o'
+                    : 'gpt-4o-mini'
 
         console.log(`[Providers] Modelo DB "${aiModel}" → OpenAI/${modelId}`)
         return { provider: 'openai', model: modelId }
