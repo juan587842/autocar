@@ -14,6 +14,7 @@ interface SpecsProps {
         doors: number | null
         engine: string | null
         description: string | null
+        features?: string[]
     }
     customFields: { label: string; value: string }[]
 }
@@ -32,6 +33,17 @@ const transmissionLabels: Record<string, string> = {
     automatic: 'Automático',
     cvt: 'CVT',
     automated: 'Automatizado',
+}
+
+const featureLabels: Record<string, string> = {
+    'ar_condicionado': 'Ar Condicionado',
+    'direcao_hidraulica': 'Direção Hidráulica',
+    'teto_solar': 'Teto Solar',
+    'bancos_couro': 'Bancos de Couro',
+    'vidros_eletricos': 'Vidros Elétricos',
+    'alarme': 'Alarme',
+    'multimidia': 'Multimídia',
+    'camera_re': 'Câmera de Ré',
 }
 
 export function VehicleSpecs({ vehicle, customFields }: SpecsProps) {
@@ -92,6 +104,23 @@ export function VehicleSpecs({ vehicle, customFields }: SpecsProps) {
                     <p className="text-sm text-[var(--color-text-primary)] leading-relaxed whitespace-pre-line">
                         {vehicle.description}
                     </p>
+                </div>
+            )}
+
+            {/* Default Features/Opcionais */}
+            {vehicle.features && vehicle.features.length > 0 && (
+                <div>
+                    <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">Opcionais</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {vehicle.features.map((featureKey) => (
+                            <span
+                                key={featureKey}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] text-xs font-medium border border-[var(--color-border)]"
+                            >
+                                {featureLabels[featureKey] || featureKey}
+                            </span>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>
