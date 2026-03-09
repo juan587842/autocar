@@ -35,22 +35,12 @@ export function VehicleForm({ initialData, submitAction, uploadAction, deleteAct
 
     // === EXTRAS STATE ===
     const [features, setFeatures] = useState<string[]>(initialData?.features || [])
-    const [newFeatureName, setNewFeatureName] = useState('')
     const [customFields, setCustomFields] = useState<{ id: string; label: string; value: string }[]>(
         initialData?.custom_fields ? Object.entries(initialData.custom_fields).map(([k, v]) => ({ id: Math.random().toString(), label: k, value: String(v) })) : []
     )
 
     const toggleFeature = (val: string) => {
         setFeatures(prev => prev.includes(val) ? prev.filter(f => f !== val) : [...prev, val])
-    }
-
-    const handleAddCustomFeature = () => {
-        if (!newFeatureName.trim()) return
-        const formattedName = newFeatureName.trim()
-        if (!features.includes(formattedName)) {
-            setFeatures(prev => [...prev, formattedName])
-        }
-        setNewFeatureName('')
     }
 
     const addCustomField = () => setCustomFields([...customFields, { id: Math.random().toString(36).substring(7), label: '', value: '' }])
@@ -190,10 +180,28 @@ export function VehicleForm({ initialData, submitAction, uploadAction, deleteAct
         </div>
     )
 
-    const optionalItemsList = [{ id: 'ar_condicionado', label: 'Ar Condicionado' }, { id: 'direcao_hidraulica', label: 'Direção Hidráulica' }, { id: 'teto_solar', label: 'Teto Solar' }, { id: 'bancos_couro', label: 'Bancos de Couro' }, { id: 'vidros_eletricos', label: 'Vidros Elétricos' }, { id: 'alarme', label: 'Alarme' }, { id: 'multimidia', label: 'Multimídia' }, { id: 'camera_re', label: 'Câmera de Ré' }]
-
-    // Filter out standard ones to show custom tags separately
-    const customFeaturesTags = features.filter(f => !optionalItemsList.some(item => item.id === f));
+    const optionalItemsList = [
+        { id: 'ar_condicionado', label: 'Ar Condicionado' },
+        { id: 'direcao_hidraulica', label: 'Direção Hidráulica' },
+        { id: 'direcao_eletrica', label: 'Direção Elétrica' },
+        { id: 'teto_solar', label: 'Teto Solar' },
+        { id: 'bancos_couro', label: 'Bancos de Couro' },
+        { id: 'vidros_eletricos', label: 'Vidros Elétricos' },
+        { id: 'travas_eletricas', label: 'Travas Elétricas' },
+        { id: 'alarme', label: 'Alarme' },
+        { id: 'multimidia', label: 'Kit Multimídia' },
+        { id: 'camera_re', label: 'Câmera de Ré' },
+        { id: 'sensor_estacionamento', label: 'Sensor de Estacionamento' },
+        { id: 'airbag', label: 'Airbag' },
+        { id: 'freio_abs', label: 'Freio ABS' },
+        { id: 'rodas_liga_leve', label: 'Rodas de Liga Leve' },
+        { id: 'controle_tracao', label: 'Controle de Tração' },
+        { id: 'computador_bordo', label: 'Computador de Bordo' },
+        { id: 'piloto_automatico', label: 'Piloto Automático' },
+        { id: 'farol_neblina', label: 'Farol de Neblina' },
+        { id: 'volante_multifuncional', label: 'Volante Multifuncional' },
+        { id: 'chave_presencial', label: 'Chave Presencial' }
+    ]
 
     const ExtrasForm = (
         <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
@@ -206,34 +214,6 @@ export function VehicleForm({ initialData, submitAction, uploadAction, deleteAct
                             <span className="text-sm text-white/70">{i.label}</span>
                         </label>
                     ))}
-                </div>
-
-                {/* Custom Features */}
-                <div className="space-y-3">
-                    <h4 className="text-sm text-white/70 font-medium">Outros Equipamentos (Personalizados)</h4>
-                    <div className="flex gap-2">
-                        <input
-                            type="text"
-                            value={newFeatureName}
-                            onChange={(e) => setNewFeatureName(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomFeature(); } }}
-                            placeholder="Ex: Rodas de Liga Leve aro 18..."
-                            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/50"
-                        />
-                        <button type="button" onClick={handleAddCustomFeature} className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-sm text-white transition-colors">
-                            Adicionar
-                        </button>
-                    </div>
-                    {customFeaturesTags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-3">
-                            {customFeaturesTags.map(f => (
-                                <span key={f} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FF4D00]/10 text-[#FF4D00] text-sm font-medium border border-[#FF4D00]/20">
-                                    {f}
-                                    <button type="button" onClick={() => toggleFeature(f)} className="hover:text-white/80 p-0.5"><X className="w-3 h-3" /></button>
-                                </span>
-                            ))}
-                        </div>
-                    )}
                 </div>
             </div>
             <div className="pt-6 border-t border-white/10"><div className="flex items-center justify-between mb-4"><h3 className="text-lg text-white">Campos Customizados</h3><button type="button" onClick={addCustomField} className="bg-white/10 px-3 py-1.5 rounded text-sm text-white">Adicionar</button></div><div className="space-y-3">{customFields.map((field) => (<div key={field.id} className="flex gap-3"><input type="text" placeholder="Nome. Ex: Potência" value={field.label} onChange={(e) => updateCustomField(field.id, 'label', e.target.value)} className="flex-1 bg-white/5 border rounded-xl px-3 text-white" /><input type="text" placeholder="Valor. Ex: 150cv" value={field.value} onChange={(e) => updateCustomField(field.id, 'value', e.target.value)} className="flex-1 bg-white/5 border rounded-xl px-3 text-white" /><button type="button" onClick={() => removeCustomField(field.id)} className="p-2.5 bg-red-500/20 text-red-500 rounded-xl"><Trash2 className="w-4 h-4" /></button></div>))}</div></div>

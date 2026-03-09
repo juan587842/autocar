@@ -38,12 +38,24 @@ const transmissionLabels: Record<string, string> = {
 const featureLabels: Record<string, string> = {
     'ar_condicionado': 'Ar Condicionado',
     'direcao_hidraulica': 'Direção Hidráulica',
+    'direcao_eletrica': 'Direção Elétrica',
     'teto_solar': 'Teto Solar',
     'bancos_couro': 'Bancos de Couro',
     'vidros_eletricos': 'Vidros Elétricos',
+    'travas_eletricas': 'Travas Elétricas',
     'alarme': 'Alarme',
-    'multimidia': 'Multimídia',
+    'multimidia': 'Kit Multimídia',
     'camera_re': 'Câmera de Ré',
+    'sensor_estacionamento': 'Sensor de Estacionamento',
+    'airbag': 'Airbag',
+    'freio_abs': 'Freio ABS',
+    'rodas_liga_leve': 'Rodas de Liga Leve',
+    'controle_tracao': 'Controle de Tração',
+    'computador_bordo': 'Computador de Bordo',
+    'piloto_automatico': 'Piloto Automático',
+    'farol_neblina': 'Farol de Neblina',
+    'volante_multifuncional': 'Volante Multifuncional',
+    'chave_presencial': 'Chave Presencial'
 }
 
 export function VehicleSpecs({ vehicle, customFields }: SpecsProps) {
