@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Car, SlidersHorizontal, ImageIcon, UploadCloud, X, GripVertical, ShieldCheck, Settings2, Zap, Trash2, ArrowLeft, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { Tabs } from '@/components/ui/tabs'
+import toast from 'react-hot-toast'
 
 export function VehicleForm({ initialData, submitAction, uploadAction, deleteAction }: { initialData?: any, submitAction: any, uploadAction: any, deleteAction?: any }) {
     const router = useRouter()
@@ -142,11 +143,11 @@ export function VehicleForm({ initialData, submitAction, uploadAction, deleteAct
                     }
                 }
             }
-            alert('Veículo salvo com sucesso!')
+            toast.success('Veículo salvo com sucesso!')
             router.push('/estoque')
             router.refresh()
         } catch (err: any) {
-            alert('Erro ao salvar: ' + err.message)
+            toast.error('Erro ao salvar: ' + err.message)
         } finally {
             setIsSubmitting(false)
         }
