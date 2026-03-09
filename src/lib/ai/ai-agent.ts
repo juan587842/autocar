@@ -71,7 +71,7 @@ export async function processMessage(
             address: storeSettings?.address,
             phone: storeSettings?.phone,
             businessHours: storeSettings?.business_hours,
-        })
+        }, phone)
 
         // 5. Gerar resposta com AI SDK + Tools
         const result = await generateText({

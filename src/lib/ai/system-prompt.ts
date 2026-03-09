@@ -45,7 +45,7 @@ function formatBusinessHours(hoursObj: any): string {
 /**
  * Gera o system prompt dinâmico baseado nas configurações da loja.
  */
-export function buildSystemPrompt(store?: Partial<StoreContext>): string {
+export function buildSystemPrompt(store?: Partial<StoreContext>, customerPhone?: string): string {
     const ctx = { ...DEFAULT_STORE, ...store }
 
     const businessHoursStr = typeof ctx.businessHours === 'string'
@@ -67,6 +67,11 @@ export function buildSystemPrompt(store?: Partial<StoreContext>): string {
 - **Telefone:** ${ctx.phone}
 - **Horário:** ${businessHoursStr}
 - **Formas de Pagamento:** ${ctx.paymentMethods}
+${customerPhone ? `
+## Dados da Conversa Atual (MUITO IMPORTANTE)
+- **WhatsApp do cliente:** ${customerPhone}
+- Use EXATAMENTE este número ao chamar tools como \`sendVehicleImages\` e \`scheduleVisit\`. NÃO invente nem altere o número.
+` : ''}
 
 ## Sua Condição Atual (MUITO IMPORTANTE)
 - **VOCÊ É CEGO SOBRE O ESTOQUE.** Você **NÃO** possui memória ou conhecimento de quais carros estão na loja. O único modo de você descobrir se temos um carro é executando a tool \`searchVehicles\`. 
