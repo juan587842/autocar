@@ -122,6 +122,37 @@ async function handleMessageReceived(data: any, supabase: any) {
 
             if (existingCustomer) {
                 customerId = existingCustomer.id
+
+                // Garantir que o cliente retornante tem um Deal ativo no Kanban
+                const { data: latestDeal } = await supabase
+                    .from('deals')
+                    .select(`id, stage_id, deal_stages!inner(name)`)
+                    .eq('customer_id', customerId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single()
+
+                const isDealActive = latestDeal &&
+                    (latestDeal as any).deal_stages?.name !== 'Ganha' &&
+                    (latestDeal as any).deal_stages?.name !== 'Perdida'
+
+                if (!isDealActive) {
+                    const { data: leadStage } = await supabase
+                        .from('deal_stages')
+                        .select('id')
+                        .eq('name', 'Lead Novo')
+                        .limit(1)
+                        .single()
+
+                    if (leadStage) {
+                        await supabase.from('deals').insert({
+                            customer_id: customerId,
+                            stage_id: leadStage.id,
+                            notes: `Recapturado automaticamente via WhatsApp. Mensagem: "${text.substring(0, 100)}"`,
+                        })
+                        console.log(`[Webhook] ✅ Deal recriado no funil "Lead Novo" para cliente retornante ${customerId}`)
+                    }
+                }
             } else {
                 // 2. Criar novo cliente automaticamente usando pushName e telefone
                 const pushName = msg.pushName || `Lead WhatsApp ${phone}`
