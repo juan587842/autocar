@@ -66,11 +66,18 @@ export function StatusBadgeToggle({ vehicleId, initialStatus }: Props) {
         setStatus(newStatus)
         setIsOpen(false)
 
+        const dbStatusMap: Record<string, string> = {
+            'Disponível': 'available',
+            'Reservado': 'reserved',
+            'Vendido': 'sold'
+        }
+        const dbStatus = dbStatusMap[newStatus] || newStatus
+
         startTransition(async () => {
             try {
-                const res = await updateVehicleStatus(vehicleId, newStatus)
+                const res = await updateVehicleStatus(vehicleId, dbStatus)
                 if (res?.error) {
-                    toast.error('Erro ao atualizar status do veículo')
+                    toast.error(`Erro ao atualizar: ${res.error}`)
                     setStatus(status) // revert
                 } else {
                     toast.success(`Veículo marcado como ${newStatus}`)
