@@ -24,14 +24,6 @@ async function getVehicle(slug: string) {
             console.error('[getVehicle] Supabase error for slug:', slug, error)
             return null
         }
-        // Fetch vehicle_fields separately since there's no FK relationship PostgREST can discover
-        if (data) {
-            const { data: fields } = await supabase
-                .from('vehicle_fields')
-                .select('*')
-                .eq('vehicle_id', data.id)
-            data.vehicle_fields = fields || []
-        }
         return data
     } catch (err) {
         console.error('[getVehicle] Exception for slug:', slug, err)
@@ -87,10 +79,9 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
         minimumFractionDigits: 0,
     }).format(vehicle.price)
 
-    const customFields = (vehicle.vehicle_fields || []).map((f: any) => ({
-        label: f.label,
-        value: f.value,
-    }))
+    const customFields = vehicle.custom_fields
+        ? Object.entries(vehicle.custom_fields).map(([label, value]) => ({ label, value: value as string }))
+        : []
 
     return (
         <>
