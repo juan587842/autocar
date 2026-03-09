@@ -213,12 +213,16 @@ export const scheduleVisit = tool({
             customerId = newCustomer?.id || null
         }
 
+        // Validar vehicleId (deve ser UUID válido, IA pode alucinar valores como "1")
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        const validVehicleId = input.vehicleId && uuidRegex.test(input.vehicleId) ? input.vehicleId : null
+
         // Criar o appointment
         const { data: appointment, error } = await supabase
             .from('appointments')
             .insert({
                 customer_id: customerId,
-                vehicle_id: input.vehicleId || null,
+                vehicle_id: validVehicleId,
                 scheduled_at: scheduledAt.toISOString(),
                 duration_min: 30,
                 status: 'scheduled',
