@@ -217,12 +217,17 @@ export const scheduleVisit = tool({
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
         const validVehicleId = input.vehicleId && uuidRegex.test(input.vehicleId) ? input.vehicleId : null
 
+        // Buscar seller padrão (primeiro usuário admin do sistema)
+        const { data: authUsers } = await supabase.auth.admin.listUsers({ perPage: 1 })
+        const sellerId = authUsers?.users?.[0]?.id || null
+
         // Criar o appointment
         const { data: appointment, error } = await supabase
             .from('appointments')
             .insert({
                 customer_id: customerId,
                 vehicle_id: validVehicleId,
+                seller_id: sellerId,
                 scheduled_at: scheduledAt.toISOString(),
                 duration_min: 30,
                 status: 'scheduled',
