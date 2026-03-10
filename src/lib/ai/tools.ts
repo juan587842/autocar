@@ -160,8 +160,8 @@ export const scheduleVisit = tool({
         customerPhone: z.string().describe('Número do WhatsApp do cliente (o mesmo número da conversa atual, que você já sabe)'),
         date: z.string().describe('Data da visita no formato YYYY-MM-DD'),
         time: z.string().describe('Horário da visita no formato HH:MM'),
-        vehicleId: z.string().optional().describe('ID ÚNICO (UUID) do veículo que foi retornado na busca (ex: 550e8400-e29b-41d4-a716-446655440000). OBRIGATÓRIO se o cliente estiver interessado em um veículo específico.'),
-        vehicleName: z.string().optional().describe('Nome do veículo de interesse (ex: Jeep Compass Longitude T270 2021/2022)'),
+        vehicleId: z.string().optional().describe('ID ÚNICO (UUID) do veículo recuperado na busca anterior. EXTREMAMENTE IMPORTANTE preencher se o cliente quer ver um carro específico.'),
+        vehicleName: z.string().optional().describe('Nome do veículo de interesse (ex: Volkswagen Nivus). Preencha sempre que o cliente tiver interesse em um carro.'),
         notes: z.string().optional().describe('Observações adicionais'),
     }),
     execute: async (input) => {
@@ -228,6 +228,21 @@ export const scheduleVisit = tool({
             
             if (!vExists) {
                 validVehicleId = null
+            }
+        }
+
+        // Fallback: Se não tem validVehicleId mas a IA passou o vehicleName, buscar o veículo mais provável pelo nome/modelo no estoque
+        if (!validVehicleId && input.vehicleName) {
+            const words = input.vehicleName.split(' ').filter(w => w.length > 2)
+            if (words.length > 0) {
+                let query = supabase.from('vehicles').select('id').eq('status', 'available')
+                const orConditions = words.map(w => `model.ilike.%${w}%,brand.ilike.%${w}%`).join(',')
+                query = query.or(orConditions).limit(1)
+                
+                try {
+                    const { data: vSearch } = await query.single()
+                    if (vSearch) validVehicleId = vSearch.id
+                } catch(e) {}
             }
         }
 

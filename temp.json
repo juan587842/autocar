@@ -1,12 +1,14 @@
 [
   {
-    "content": "Tive um problema ao tentar agendar sua visita para amanhã às 14h. Por favor, tente novamente daqui a pouco ou, se preferir, posso transferir você para um de nossos vendedores para ajudar com o agendamento. Como prefere proceder?",
-    "sender_type": "agent",
-    "created_at": "2026-03-10T16:24:08.887583+00:00"
-  },
-  {
-    "content": "Meu nome eh Juan Simulador e meu email eh juanp82462@gmail.com",
-    "sender_type": "customer",
-    "created_at": "2026-03-10T16:23:58.329831+00:00"
+    "id": "5146ee2b-17a1-4fa1-bda6-e8a19a0c596b",
+    "customer_id": "e43111ab-0819-402d-9800-d3c476a5d3da",
+    "vehicle_id": null,
+    "seller_id": "3079fce6-e0fd-4c28-8a8c-3de4e96951ac",
+    "scheduled_at": "2026-03-12T17:00:00+00:00",
+    "duration_min": 30,
+    "status": "scheduled",
+    "notes": "Agendamento pelo WhatsApp",
+    "created_at": "2026-03-10T16:58:45.296492+00:00",
+    "updated_at": "2026-03-10T16:58:45.296492+00:00"
   }
 ]
