@@ -87,7 +87,7 @@ export default function VendasClient({
 
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 bg-[#FF4D00] text-white px-5 py-2.5 rounded-xl font-medium hover:bg-[#FF4D00]/90 transition-colors shadow-lg shadow-[#FF4D00]/20"
+                    className="flex items-center gap-2 bg-[#FF4D00] text-white px-5 py-2.5 rounded-full font-bold text-sm tracking-wide hover:bg-[#FF4D00]/90 transition-all shadow-[0_0_20px_rgba(255,77,0,0.3)] hover:shadow-[0_0_25px_rgba(255,77,0,0.5)] active:scale-95"
                 >
                     <Plus className="h-5 w-5" />
                     Nova Oportunidade
@@ -104,13 +104,13 @@ export default function VendasClient({
                             const stageDeals = deals.filter(d => d.stage_id === stage.id)
 
                             return (
-                                <div key={stage.id} className="w-[85vw] sm:w-[340px] xl:w-auto shrink-0 snap-center h-full flex flex-col rounded-[2xl] bg-white/[0.02] border border-white/5 backdrop-blur-3xl overflow-hidden shadow-2xl relative pb-4">
+                                <div key={stage.id} className="w-[80vw] min-w-[280px] sm:w-[320px] xl:w-auto shrink-0 snap-center h-full flex flex-col rounded-[2xl] bg-[#0A0A0A]/50 border border-white/5 backdrop-blur-3xl overflow-hidden shadow-2xl relative pb-4">
                                     {/* Header da Coluna */}
-                                    <div className="p-5 border-b border-t-2 border-white/5 flex items-center justify-between bg-white/5 z-10" style={{ borderTopColor: stage.color || '#cbd5e1' }}>
+                                    <div className="p-4 sm:p-5 border-b border-t-[3px] border-white/5 flex items-center justify-between bg-gradient-to-b from-white/[0.04] to-transparent z-10" style={{ borderTopColor: stage.color || '#cbd5e1' }}>
                                         <div className="flex items-center gap-3">
-                                            <h2 className="font-bold text-white/90 text-[15px]">{stage.name}</h2>
+                                            <h2 className="font-bold text-white/95 text-[15px] tracking-wide">{stage.name}</h2>
                                         </div>
-                                        <span className="text-xs font-bold bg-black/40 text-white/50 px-2.5 py-1 rounded-full border border-white/10">
+                                        <span className="text-[11px] font-bold bg-white/5 text-white/60 px-2.5 py-1 rounded-full border border-white/10 shadow-inner">
                                             {stageDeals.length}
                                         </span>
                                     </div>
@@ -124,8 +124,11 @@ export default function VendasClient({
                                                 className={`p-4 flex-1 overflow-y-auto space-y-4 custom-scrollbar z-10 transition-colors ${snapshot.isDraggingOver ? 'bg-white/5' : ''}`}
                                             >
                                                 {stageDeals.length === 0 && !snapshot.isDraggingOver && (
-                                                    <div className="h-full min-h-[150px] flex items-center justify-center p-6 text-center pointer-events-none">
-                                                        <p className="text-white/30 text-sm font-medium border border-dashed border-white/10 rounded-2xl p-6 w-full">Vazio</p>
+                                                    <div className="h-full min-h-[150px] flex flex-col items-center justify-center p-6 text-center pointer-events-none opacity-50">
+                                                        <div className="w-12 h-12 rounded-full border border-dashed border-white/20 flex items-center justify-center mb-3">
+                                                            <span className="text-white/30 truncate text-xs">Vazio</span>
+                                                        </div>
+                                                        <p className="text-white/40 text-sm font-medium">Nenhum lead</p>
                                                     </div>
                                                 )}
 
@@ -143,26 +146,28 @@ export default function VendasClient({
                                                                     {...provided.dragHandleProps}
                                                                     style={{
                                                                         ...provided.draggableProps.style,
-                                                                        opacity: snapshot.isDragging ? 0.8 : 1,
+                                                                        opacity: snapshot.isDragging ? 0.9 : 1,
                                                                     }}
-                                                                    className="bg-black/60 hover:bg-white/5 border border-white/10 rounded-2xl p-4 transition-colors group/card relative overflow-hidden shadow-xl shadow-black/40"
+                                                                    className={`bg-[#121212] hover:bg-[#1A1A1A] border border-white/5 rounded-2xl p-5 transition-all duration-200 group/card relative overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-1 ${snapshot.isDragging ? 'rotate-2 scale-105 shadow-2xl ring-1 ring-white/20' : ''}`}
                                                                 >
-                                                                    <div className="absolute left-0 top-0 bottom-0 w-1 opacity-50" style={{ backgroundColor: stage.color || '#fff' }} />
+                                                                    <div className="absolute left-0 top-0 bottom-0 w-1 opacity-80" style={{ backgroundColor: stage.color || '#fff' }} />
 
-                                                                    <div className="flex items-start justify-between mb-3 pl-2">
-                                                                        <h3 className="font-bold text-white text-sm leading-tight pr-4 truncate">{customerName}</h3>
+                                                                    <div className="flex items-start justify-between mb-4 pl-1">
+                                                                        <h3 className="font-bold text-white/90 text-[15px] leading-tight pr-4">{customerName}</h3>
                                                                         <GripVertical className="w-4 h-4 text-white/20 shrink-0 opacity-0 group-hover/card:opacity-100 transition-opacity" />
                                                                     </div>
 
-                                                                    <div className="space-y-2 pl-2">
-                                                                        <p className="text-xs font-medium text-white/40 truncate bg-white/5 px-2 py-1 rounded-md inline-block border border-white/5">
+                                                                    <div className="space-y-3 pl-1">
+                                                                        <p className="text-xs font-medium text-white/60 bg-white/5 px-2.5 py-1.5 rounded-lg inline-block border border-white/5">
                                                                             {vehicleName}
                                                                         </p>
-                                                                        <div className="pt-2 mt-2 border-t border-white/5 flex items-center justify-between">
-                                                                            <p className="text-xs font-bold text-[#FF4D00] flex items-center gap-1">
-                                                                                <BadgeDollarSign className="w-3.5 h-3.5" />
-                                                                                {amount}
-                                                                            </p>
+                                                                        <div className="pt-3 mt-1 border-t border-white/5 flex items-center justify-between">
+                                                                            <div className="flex items-center gap-1.5 bg-[#FF4D00]/10 px-2.5 py-1 rounded-md border border-[#FF4D00]/20">
+                                                                                <BadgeDollarSign className="w-3.5 h-3.5 text-[#FF4D00]" />
+                                                                                <p className="text-xs font-bold text-[#FF4D00]">
+                                                                                    {amount}
+                                                                                </p>
+                                                                            </div>
                                                                             <p className="text-[10px] text-white/30 font-semibold">{new Date(deal.created_at).toLocaleDateString()}</p>
                                                                         </div>
                                                                     </div>
