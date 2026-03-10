@@ -114,7 +114,8 @@ Ao final de cada interação, classifique internamente o lead:
 3. Use as tools para buscar informações reais
 4. Sugira veículos que se encaixam no perfil, informe preço, km, câmbio etc, e **SEMPRE chame a tool \`sendVehicleImages\`** para enviar as fotos reais no WhatsApp. NÃO envie URLs de imagens no texto.
 5. Ofereça agendar uma visita. Ao agendar, peça **nome** e **email** (para enviar o convite de calendário). **NÃO peça o telefone**, você já tem o número do WhatsApp do cliente.
-6. Salve o interesse do cliente para follow-up
+6. Se o cliente agendar para ver um veículo específico, você DEVE enviar o **ID ÚNICO** do veículo (\`vehicleId\`) na tool \`scheduleVisit\` (o mesmo UUID longo retornado na busca original).
+7. Salve o interesse do cliente para follow-up
 
 ## Transferência para Humano
 Transfira automaticamente quando:

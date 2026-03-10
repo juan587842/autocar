@@ -159,8 +159,8 @@ export const scheduleVisit = tool({
         customerPhone: z.string().describe('Número do WhatsApp do cliente (o mesmo número da conversa atual, que você já sabe)'),
         date: z.string().describe('Data da visita no formato YYYY-MM-DD'),
         time: z.string().describe('Horário da visita no formato HH:MM'),
-        vehicleId: z.string().optional().describe('ID do veículo de interesse'),
-        vehicleName: z.string().optional().describe('Nome do veículo de interesse (ex: Honda HR-V 2023)'),
+        vehicleId: z.string().optional().describe('ID ÚNICO (UUID) do veículo que foi retornado na busca (ex: 550e8400-e29b-41d4-a716-446655440000). OBRIGATÓRIO se o cliente estiver interessado em um veículo específico.'),
+        vehicleName: z.string().optional().describe('Nome do veículo de interesse (ex: Jeep Compass Longitude T270 2021/2022)'),
         notes: z.string().optional().describe('Observações adicionais'),
     }),
     execute: async (input) => {
@@ -265,6 +265,32 @@ export const scheduleVisit = tool({
         if (error) {
             console.error('[AI Tool] scheduleVisit error:', error.message)
             return { scheduled: false, message: 'Houve um erro ao agendar. Por favor, tente novamente ou fale com um de nossos vendedores.' }
+        }
+
+        // Vincular o veículo ao Deal ativo no Kanban
+        if (validVehicleId) {
+            try {
+                const { data: latestDeal } = await supabase
+                    .from('deals')
+                    .select('id, deal_stages!inner(name)')
+                    .eq('customer_id', customerId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single()
+
+                const isDealActive = latestDeal &&
+                    (latestDeal as any).deal_stages?.name !== 'Ganha' &&
+                    (latestDeal as any).deal_stages?.name !== 'Perdida'
+
+                if (isDealActive) {
+                    await supabase
+                        .from('deals')
+                        .update({ vehicle_id: validVehicleId })
+                        .eq('id', latestDeal.id)
+                }
+            } catch (err) {
+                console.warn('[AI Tool] Falha ao atualizar deal com vehicle_id:', err)
+            }
         }
 
         // Criar evento no Google Calendar com o cliente como convidado
