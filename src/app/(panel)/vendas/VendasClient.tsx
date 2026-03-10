@@ -96,7 +96,7 @@ export default function VendasClient({
 
             {/* Kanban Board */}
             <DragDropContext onDragEnd={onDragEnd}>
-                <div className="flex-1 w-full overflow-x-auto overflow-y-hidden custom-scrollbar pb-6 -mx-4 px-4 xl:mx-0 xl:px-0">
+                <div className="flex-1 w-full overflow-x-auto overflow-y-hidden custom-scrollbar pb-6">
                     <div className="flex xl:grid gap-4 h-full min-w-max xl:min-w-0 xl:w-full items-start snap-x snap-mandatory xl:snap-none"
                         style={{ gridTemplateColumns: `repeat(${stages.length}, minmax(0, 1fr))` }}>
 

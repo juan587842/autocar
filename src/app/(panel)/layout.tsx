@@ -24,7 +24,7 @@ export default function PanelLayout({
                     <PanelHeader />
 
                     <main className="flex-1 pb-20 lg:pb-0">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+                        <div className="mx-auto w-full max-w-[100vw] px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
                             {children}
                         </div>
                     </main>
