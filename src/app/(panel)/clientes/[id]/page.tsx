@@ -48,11 +48,20 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
 
     if (appointments) {
         appointments.forEach((app: any) => {
+            const statusMap: Record<string, string> = {
+                scheduled: 'Agendado',
+                confirmed: 'Confirmado',
+                cancelled: 'Cancelado',
+                completed: 'Concluído',
+                no_show: 'Não Compareceu',
+            }
+            const translatedStatus = statusMap[app.status] || app.status
+
             historyEvents.push({
                 id: `app-${app.id}`,
                 type: 'visit',
                 date: new Date(app.scheduled_at).toLocaleString('pt-BR'),
-                content: `Agendamento: ${app.notes || 'Visita agendada'} (${app.status})`,
+                content: `Agendamento: ${app.notes || 'Visita agendada'} (${translatedStatus})`,
                 author: 'Sistema',
                 rawDate: new Date(app.scheduled_at).getTime()
             })
