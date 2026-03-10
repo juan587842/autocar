@@ -96,15 +96,15 @@ export default function VendasClient({
 
             {/* Kanban Board */}
             <DragDropContext onDragEnd={onDragEnd}>
-                <div className="flex-1 w-full overflow-x-auto overflow-y-hidden custom-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
-                    <div className="flex xl:grid gap-4 xl:gap-6 h-full min-w-max xl:min-w-0 xl:w-full items-start snap-x snap-mandatory"
+                <div className="flex-1 w-full overflow-x-auto overflow-y-hidden custom-scrollbar pb-6 -mx-4 px-4 xl:mx-0 xl:px-0">
+                    <div className="flex xl:grid gap-4 h-full min-w-max xl:min-w-0 xl:w-full items-start snap-x snap-mandatory xl:snap-none"
                         style={{ gridTemplateColumns: `repeat(${stages.length}, minmax(0, 1fr))` }}>
 
                         {stages.map((stage) => {
                             const stageDeals = deals.filter(d => d.stage_id === stage.id)
 
                             return (
-                                <div key={stage.id} className="w-[80vw] min-w-[280px] sm:w-[320px] xl:w-auto shrink-0 snap-center h-full flex flex-col rounded-[2xl] bg-[#0A0A0A]/50 border border-white/5 backdrop-blur-3xl overflow-hidden shadow-2xl relative pb-4">
+                                <div key={stage.id} className="w-[85vw] sm:w-[320px] xl:w-full shrink-0 xl:shrink snap-center h-full flex flex-col rounded-[2xl] bg-[#0A0A0A]/80 border border-white/5 backdrop-blur-3xl overflow-hidden shadow-2xl relative pb-4">
                                     {/* Header da Coluna */}
                                     <div className="p-4 sm:p-5 border-b border-t-[3px] border-white/5 flex items-center justify-between bg-gradient-to-b from-white/[0.04] to-transparent z-10" style={{ borderTopColor: stage.color || '#cbd5e1' }}>
                                         <div className="flex items-center gap-3">
