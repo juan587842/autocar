@@ -216,7 +216,20 @@ export const scheduleVisit = tool({
 
         // Validar vehicleId (deve ser UUID válido, IA pode alucinar valores como "1")
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-        const validVehicleId = input.vehicleId && uuidRegex.test(input.vehicleId) ? input.vehicleId : null
+        let validVehicleId = input.vehicleId && uuidRegex.test(input.vehicleId) ? input.vehicleId : null
+
+        if (validVehicleId) {
+            const { data: vExists } = await supabase
+                .from('vehicles')
+                .select('id')
+                .eq('id', validVehicleId)
+                .limit(1)
+                .single()
+            
+            if (!vExists) {
+                validVehicleId = null
+            }
+        }
 
         // Buscar seller padrão (primeiro usuário do sistema)
         let sellerId: string | null = null
