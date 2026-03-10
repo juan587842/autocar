@@ -21,7 +21,7 @@ interface Deal {
     expected_close_date?: string | null
     created_at: string
     customers?: { full_name: string } | null
-    vehicles?: { brand: string; model: string; year: number } | null
+    vehicles?: { brand: string; model: string; year_fab: number } | null
 }
 
 export default function VendasClient({
@@ -131,7 +131,7 @@ export default function VendasClient({
 
                                                 {stageDeals.map((deal, index) => {
                                                     const customerName = deal.customers?.full_name || 'Desconhecido'
-                                                    const vehicleName = deal.vehicles ? `${deal.vehicles.brand} ${deal.vehicles.model} ${deal.vehicles.year}` : 'Veículo não informado'
+                                                    const vehicleName = deal.vehicles ? `${deal.vehicles.brand} ${deal.vehicles.model} ${deal.vehicles.year_fab}` : 'Veículo não informado'
                                                     const amount = deal.amount ? `R$ ${Number(deal.amount).toLocaleString('pt-BR')}` : 'S/ Valor'
 
                                                     return (

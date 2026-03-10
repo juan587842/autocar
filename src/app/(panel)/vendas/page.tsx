@@ -19,9 +19,13 @@ export default async function VendasPage() {
         .select(`
             *,
             customers (full_name),
-            vehicles (brand, model, version, year)
+            vehicles (brand, model, year_fab)
         `)
         .order('created_at', { ascending: false })
+
+    if (dealsError) {
+        console.error('Error fetching deals:', dealsError.message)
+    }
 
     // Fallbacks Se a Migração ainda não rodou:
     const finalStages = (!stagesError && stages && stages.length > 0) ? stages : [
