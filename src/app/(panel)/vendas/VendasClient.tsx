@@ -182,19 +182,105 @@ export default function VendasClient({
                 </div>
             </DragDropContext>
 
-            {/* Modal Mock */}
+            {/* Modal Nova Oportunidade */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#0A0A0A] border border-white/10 p-6 rounded-2xl w-full max-w-md relative shadow-2xl">
-                        <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors">
+                    <form
+                        className="bg-[#0A0A0A] border border-white/10 p-6 rounded-2xl w-full max-w-md relative shadow-2xl"
+                        onSubmit={async (e) => {
+                            e.preventDefault()
+                            const form = e.currentTarget
+                            const formData = new FormData(form)
+                            const phone = String(formData.get('phone')).replace(/\D/g, '')
+                            const name = String(formData.get('name'))
+                            const amount = Number(formData.get('amount')) || null
+                            const vehicleInfo = String(formData.get('vehicleInfo'))
+
+                            if (!phone || !name) return
+
+                            try {
+                                // 1. Buscar ou criar cliente
+                                let customerId = null
+                                const { data: existingCustomer } = await supabase
+                                    .from('customers')
+                                    .select('id')
+                                    .eq('phone', phone)
+                                    .single()
+
+                                if (existingCustomer) {
+                                    customerId = existingCustomer.id
+                                } else {
+                                    const { data: newCustomer, error: cErr } = await supabase
+                                        .from('customers')
+                                        .insert({ full_name: name, phone })
+                                        .select('id')
+                                        .single()
+                                    if (cErr) throw cErr
+                                    customerId = newCustomer.id
+                                }
+
+                                // 2. Criar Deal na primeira coluna (Lead Novo)
+                                const firstStageId = stages[0]?.id
+                                if (!firstStageId) throw new Error('No stages found')
+
+                                const { data: newDeal, error: dErr } = await supabase
+                                    .from('deals')
+                                    .insert({
+                                        customer_id: customerId,
+                                        stage_id: firstStageId,
+                                        amount,
+                                        notes: vehicleInfo || 'Criado manualmente pelo Kanban'
+                                    })
+                                    .select('*, customers(full_name), vehicles(brand, model, year)')
+                                    .single()
+
+                                if (dErr) throw dErr
+
+                                // 3. Atualizar estado local
+                                setDeals(prev => [newDeal as any, ...prev])
+                                setIsModalOpen(false)
+                            } catch (err) {
+                                console.error('Error creating deal:', err)
+                                alert('Erro ao criar oportunidade. Tente novamente.')
+                            }
+                        }}
+                    >
+                        <button type="button" onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors">
                             <X className="w-5 h-5" />
                         </button>
-                        <h2 className="text-xl font-bold text-white mb-6">Nova Oportunidade</h2>
-                        <p className="text-sm text-white/60 mb-6">Esta funcionalidade será implementada no próximo ciclo (Painel completo do Lead).</p>
-                        <button type="button" onClick={() => setIsModalOpen(false)} className="w-full bg-[#FF4D00] text-white font-bold py-3 rounded-xl transition-all">
-                            Fechar
-                        </button>
-                    </div>
+                        <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-[#FF4D00]" />
+                            Nova Oportunidade
+                        </h2>
+
+                        <div className="space-y-4 mb-8">
+                            <div>
+                                <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Nome do Cliente *</label>
+                                <input required name="name" type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00] transition-all" placeholder="Ex: João da Silva" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">WhatsApp *</label>
+                                <input required name="phone" type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00] transition-all" placeholder="Ex: 11999999999" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Veículo de Interesse / Notas</label>
+                                <input name="vehicleInfo" type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00] transition-all" placeholder="Ex: Honda Civic 2021" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Valor Esperado (R$)</label>
+                                <input name="amount" type="number" step="0.01" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00] transition-all" placeholder="Ex: 120000" />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 bg-white/5 text-white font-bold py-3 rounded-xl hover:bg-white/10 transition-colors">
+                                Cancelar
+                            </button>
+                            <button type="submit" className="flex-1 bg-[#FF4D00] text-white font-bold py-3 rounded-xl hover:bg-[#FF4D00]/90 transition-all shadow-lg shadow-[#FF4D00]/20">
+                                Criar
+                            </button>
+                        </div>
+                    </form>
                 </div>
             )}
         </div>
