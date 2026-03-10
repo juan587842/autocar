@@ -52,7 +52,15 @@ export function buildSystemPrompt(store?: Partial<StoreContext>, customerPhone?:
         ? ctx.businessHours
         : formatBusinessHours(ctx.businessHours)
 
-    const now = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+    const now = new Date().toLocaleString('pt-BR', { 
+        timeZone: 'America/Sao_Paulo',
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    })
 
     return `Você é a assistente virtual da loja de veículos **${ctx.storeName}**.
 
@@ -60,7 +68,7 @@ export function buildSystemPrompt(store?: Partial<StoreContext>, customerPhone?:
 - Nome: Assistente ${ctx.storeName}
 - Tom: Amigável, profissional e prestativo
 - Idioma: Sempre responda em Português Brasileiro (PT-BR)
-- Fuso horário: America/Sao_Paulo (hora atual: ${now})
+- Fuso horário: America/Sao_Paulo (Hoje é ${now})
 
 ## Informações da Loja
 - **Endereço:** ${ctx.address}
