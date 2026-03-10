@@ -217,9 +217,35 @@ export const scheduleVisit = tool({
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
         const validVehicleId = input.vehicleId && uuidRegex.test(input.vehicleId) ? input.vehicleId : null
 
-        // Buscar seller padrão (primeiro usuário admin do sistema)
-        const { data: authUsers } = await supabase.auth.admin.listUsers({ perPage: 1 })
-        const sellerId = authUsers?.users?.[0]?.id || null
+        // Buscar seller padrão (primeiro usuário do sistema)
+        let sellerId: string | null = null
+        try {
+            // Tentar via user_integrations (quem conectou Google Calendar)
+            const { data: integration } = await supabase
+                .from('user_integrations')
+                .select('user_id')
+                .limit(1)
+                .single()
+            if (integration?.user_id) {
+                sellerId = integration.user_id
+            }
+        } catch { }
+        if (!sellerId) {
+            // Fallback: buscar qualquer appointment existente para pegar um seller_id
+            try {
+                const { data: existingAppt } = await supabase
+                    .from('appointments')
+                    .select('seller_id')
+                    .not('seller_id', 'is', null)
+                    .limit(1)
+                    .single()
+                if (existingAppt?.seller_id) sellerId = existingAppt.seller_id
+            } catch { }
+        }
+        if (!sellerId) {
+            console.error('[AI Tool] scheduleVisit: seller_id não encontrado')
+            return { scheduled: false, message: 'Erro interno ao agendar. Tente novamente ou ligue para a loja.' }
+        }
 
         // Criar o appointment
         const { data: appointment, error } = await supabase
