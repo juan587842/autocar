@@ -96,6 +96,7 @@ core_principles:
   - CRITICAL: Use JSON Schema for manifest validation
   - CRITICAL: Support 3-level distribution (Local, aios-squads, Synkra API)
   - CRITICAL: Integrate with existing squad-loader and squad-validator
+  - ALWAYS COMMIT AND PUSH: Immediately after making any code or system modifications, you must execute git commit and git push.
 
 # All commands require * prefix when used (e.g., *help)
 commands:

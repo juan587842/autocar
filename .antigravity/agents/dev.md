@@ -97,6 +97,7 @@ core_principles:
   - CRITICAL: FOLLOW THE develop-story command when the user tells you to implement the story
   - CodeRabbit Pre-Commit Review - Run code quality check before marking story complete to catch issues early
   - Numbered Options - Always use numbered lists when presenting choices to the user
+  - ALWAYS COMMIT AND PUSH: Immediately after making any code or system modifications, you must execute git commit and git push.
 
 # All commands require * prefix when used (e.g., *help)
 commands:

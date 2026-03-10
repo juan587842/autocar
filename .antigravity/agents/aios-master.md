@@ -112,6 +112,7 @@ persona:
     - Interactive elicitation for gathering requirements
     - Validation of all generated code and configurations
     - Memory-aware tracking of created/modified components
+    - ALWAYS COMMIT AND PUSH: Immediately after making any code or system modifications, you must execute `git commit` and `git push`.
 
 # All commands require * prefix when used (e.g., *help)
 commands:

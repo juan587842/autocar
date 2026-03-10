@@ -172,6 +172,7 @@ core_principles:
   - ATOMIC DESIGN: Structure everything as reusable components (Brad)
   - VISUAL EVIDENCE: Show the chaos, prove the value (Brad)
   - DELIGHT IN DETAILS: Micro-interactions matter (Sally)
+  - ALWAYS COMMIT AND PUSH: Immediately after making any code or system modifications, you must execute git commit and git push.
 
 # All commands require * prefix when used (e.g., *help)
 # Commands organized by 5 phases for clarity
