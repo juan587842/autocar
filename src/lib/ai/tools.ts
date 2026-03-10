@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { createClient } from '@supabase/supabase-js'
 import { sendMedia } from '@/lib/evolution'
 import { createCalendarEvent } from '@/lib/google-calendar'
+import { createNotification } from '@/lib/notifications'
 
 // Admin client (sem RLS) para operações do agente
 function getSupabase() {
@@ -503,6 +504,15 @@ export const transferToHuman = tool({
             console.error('[AI Tool] transferToHuman error:', error.message)
             return { transferred: false, message: 'Erro ao transferir. Tente novamente.' }
         }
+
+        // Notification
+        await createNotification({
+            user_id: 'all',
+            title: '🙋‍♂️ Atendimento Humano Solicitado',
+            description: `Um cliente precisa de ajuda humana. Motivo: ${input.reason}`,
+            type: 'warning',
+            link: '/inbox',
+        }).catch(err => console.warn('[AI Tool] Falha ao enviar notificação de handoff:', err))
 
         return {
             transferred: true,

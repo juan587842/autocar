@@ -69,6 +69,17 @@ export default function VendasClient({
         if (error) {
             console.error('Failed to move deal in DB', error)
             // Ideally revert state here if needed
+        } else {
+            const stageName = stages.find(s => s.id === newStageId)?.name || 'Nova Etapa'
+            const deal = deals.find(d => d.id === draggableId)
+            const customerName = deal?.customers?.full_name || 'Desconhecido'
+
+            // Notify team
+            fetch('/api/notifications/kanban', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dealId: draggableId, customerName, stageName })
+            }).catch(err => console.error('Failed to notify kanban move', err))
         }
     }
 

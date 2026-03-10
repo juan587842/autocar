@@ -28,9 +28,19 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
         .select('id, scheduled_at, duration_min, status, notes')
         .eq('customer_id', id)
 
-    const { data: messages } = await supabase
-        .from('conversations')
-        .select('id, messages(id, content, sender_type, created_at)')
+    const { data: interests } = await supabase
+        .from('customer_interests')
+        .select(`
+            id,
+            created_at,
+            notes,
+            vehicles (
+                brand,
+                model,
+                year_fab,
+                year_model
+            )
+        `)
         .eq('customer_id', id)
 
     // Agrupando e ordenando histórico (Timeline Adapter)
@@ -49,26 +59,20 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
         })
     }
 
-    if (messages) {
-        messages.forEach((conv: any) => {
-            conv.messages?.forEach((msg: any) => {
-                // Apenas mostrar mensagens do cliente e do agente/vendedor (remover duplicatas AI silenciosas)
-                if (!msg.content || msg.content === '[Mídia]') return
-
-                const senderLabel = msg.sender_type === 'customer'
-                    ? 'Cliente'
-                    : msg.sender_type === 'ai' || msg.sender_type === 'agent'
-                        ? 'Agente IA'
-                        : 'Vendedor'
-
-                historyEvents.push({
-                    id: `msg-${msg.id}`,
-                    type: msg.sender_type === 'customer' ? 'lead' : 'note',
-                    date: new Date(msg.created_at).toLocaleString('pt-BR'),
-                    content: `${msg.content.slice(0, 120)}${msg.content.length > 120 ? '...' : ''}`,
-                    author: senderLabel,
-                    rawDate: new Date(msg.created_at).getTime()
-                })
+    if (interests) {
+        interests.forEach((interest: any) => {
+            const v = interest.vehicles
+            const vehicleInfo = v 
+                ? `${v.brand} ${v.model} ${v.year_fab}/${v.year_model}`
+                : 'Veículo não informado'
+            
+            historyEvents.push({
+                id: `int-${interest.id}`,
+                type: 'lead',
+                date: new Date(interest.created_at).toLocaleString('pt-BR'),
+                content: `Interesse: ${vehicleInfo}${interest.notes ? ` - ${interest.notes}` : ''}`,
+                author: 'Sistema',
+                rawDate: new Date(interest.created_at).getTime()
             })
         })
     }

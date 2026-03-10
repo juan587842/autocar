@@ -282,16 +282,8 @@ async function handleMessageReceived(data: any, supabase: any) {
                     console.error('[Webhook] Erro ao verificar AI:', aiErr.message)
                 }
 
-                // Notificação para todo novo mensagem do cliente na caixa de entrada
-                const senderName = msg.pushName || `+${phone}`
-                const preview = text !== '[Mídia]' ? text.slice(0, 60) : '📎 Mídia'
-                await createNotification({
-                    user_id: 'all',
-                    title: `💬 Mensagem de ${senderName}`,
-                    description: preview,
-                    type: 'message',
-                    link: '/inbox',
-                }).catch((err) => console.warn('[Webhook] Erro ao criar notificação de mensagem:', err?.message))
+                // Sem notificação push para mensagens individuais para diminuir spam.
+                // A notificação de "Novo Lead" já ocorre acima na criação do cliente.
             }
         }
     }
