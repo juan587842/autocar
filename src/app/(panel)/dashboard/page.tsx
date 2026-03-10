@@ -4,18 +4,7 @@ import { SalesChart } from '@/components/dashboard/sales-chart'
 import { QuickList } from '@/components/dashboard/quick-list'
 import { Car, Users, TrendingUp, CalendarCheck } from 'lucide-react'
 
-// --- FALLBACK MOCKS ---
-const chartData = [
-    { label: 'Out', value: 8 },
-    { label: 'Nov', value: 12 },
-    { label: 'Dez', value: 18 },
-    { label: 'Jan', value: 15 },
-    { label: 'Fev', value: 22 },
-    { label: 'Mar', value: 14 },
-]
 
-// Removido followUpsMock, pois agora consultamos os agendamentos do banco
-// --- FIM MOCKS ---
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -80,11 +69,56 @@ export default async function DashboardPage() {
     }
     const { data: todayAppointments } = await appointmentsQuery
 
+    // 6. Fetch Vendas dos Últimos 6 Meses
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
+    sixMonthsAgo.setDate(1) // Start of the month 6 months ago
+
+    let salesQuery = supabase
+        .from('vehicles')
+        .select('sold_at')
+        .gte('sold_at', sixMonthsAgo.toISOString())
+
+    if (isSeller && user) {
+        salesQuery = salesQuery.eq('seller_id', user.id)
+    }
+    const { data: salesData } = await salesQuery
+
+    // Agrupar por mês
+    const monthsMap = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+    const chartData: { monthIndex: number, label: string, value: number }[] = []
+    
+    // Inicializar os últimos 6 meses
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date()
+        d.setMonth(d.getMonth() - i)
+        chartData.push({ 
+            monthIndex: d.getMonth(), 
+            label: monthsMap[d.getMonth()], 
+            value: 0 
+        })
+    }
+
+    if (salesData) {
+        salesData.forEach(sale => {
+            if (!sale.sold_at) return
+            const saleDate = new Date(sale.sold_at)
+            const monthIdx = saleDate.getMonth()
+            const point = chartData.find(c => c.monthIndex === monthIdx)
+            if (point) {
+                point.value += 1
+            }
+        })
+    }
+
+    const finalChartData = chartData.map(c => ({ label: c.label, value: c.value }))
+
     const totalVehicles = vehiclesCount || 0
     const totalLeads = customersCount || 0
     const totalOffers = offersCount || 0
 
     // Mapeando leads do banco
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mapLeadsToQuickList = (customers: any[]) => {
         if (!customers || customers.length === 0) {
             return []
@@ -105,6 +139,7 @@ export default async function DashboardPage() {
     const dbLeads = mapLeadsToQuickList(latestLeads || [])
 
     // Mapeando Appointments para a formato da QuickList de FollowUps
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dbFollowUps = (todayAppointments || []).map((app: any) => ({
         id: app.id,
         title: app.customers?.full_name || 'Desconhecido',
@@ -154,7 +189,7 @@ export default async function DashboardPage() {
             {/* Middle Section: Chart (2/3) + Leads (1/3) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 h-[350px]">
-                    <SalesChart data={chartData} title="Vendas por Mês" subtitle="Desempenho dos últimos 6 meses" />
+                    <SalesChart data={finalChartData} title="Vendas por Mês" subtitle="Desempenho dos últimos 6 meses" />
                 </div>
 
                 <div className="h-[350px]">

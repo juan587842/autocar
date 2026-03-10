@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Plus, Search, Filter, Edit, PowerOff, LayoutGrid, List as ListIcon, ChevronDown, X, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { SaleCustomerModal } from '@/components/vehicles/SaleCustomerModal'
 
 const statusColors = {
     green: 'text-green-400 bg-green-400/10 border-green-400/20',
@@ -17,12 +18,16 @@ const statusColors = {
 
 type ViewMode = 'grid' | 'list'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function InventoryClient({ initialVehicles = [] }: { initialVehicles: any[] }) {
     const [viewMode, setViewMode] = useState<ViewMode>('grid')
     const [searchQuery, setSearchQuery] = useState('')
     const [showFilters, setShowFilters] = useState(false)
     const [filterBrand, setFilterBrand] = useState('')
     const [filterStatus, setFilterStatus] = useState('')
+    const [saleModalOpen, setSaleModalOpen] = useState(false)
+    const [saleCarId, setSaleCarId] = useState('')
+    const [saleCarModel, setSaleCarModel] = useState('')
     const router = useRouter()
     const supabase = createClient()
 
@@ -35,6 +40,7 @@ export default function InventoryClient({ initialVehicles = [] }: { initialVehic
         return status
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mapVehicle = (car: any) => {
         const isDB = car.id && car.id.includes && car.id.includes('-')
 
@@ -45,6 +51,7 @@ export default function InventoryClient({ initialVehicles = [] }: { initialVehic
         if (['reservado', 'reserved'].includes(lowerStatus)) mappedColor = 'reservado'
 
         // Try to find the cover photo first, then fallback to the first photo, then other fields
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sortedPhotos = car.vehicle_photos ? [...car.vehicle_photos].sort((a: any, b: any) => {
             if (a.is_cover) return -1
             if (b.is_cover) return 1
@@ -85,10 +92,29 @@ export default function InventoryClient({ initialVehicles = [] }: { initialVehic
         let newStatus = 'Disponível'
         const lower = currentStatus.toLowerCase()
         if (lower === 'disponível' || lower === 'available') newStatus = 'Reservado'
-        else if (lower === 'reservado' || lower === 'reserved') newStatus = 'Vendido'
+        else if (lower === 'reservado' || lower === 'reserved') {
+            const car = initialVehicles.find(c => c.id === carId)
+            setSaleCarId(carId)
+            setSaleCarModel(car ? `${car.brand} ${car.model}` : 'Veículo')
+            setSaleModalOpen(true)
+            return
+        }
         else if (lower === 'vendido' || lower === 'sold') newStatus = 'Disponível'
 
-        await supabase.from('vehicles').update({ status: newStatus }).eq('id', carId)
+        await supabase.from('vehicles').update({ status: newStatus, buyer_id: null, sold_at: null }).eq('id', carId)
+        router.refresh()
+    }
+
+    const handleConfirmSale = async (buyerId: string | null) => {
+        if (!saleCarId) return
+        
+        await supabase.from('vehicles').update({ 
+            status: 'Vendido', 
+            buyer_id: buyerId,
+            sold_at: new Date().toISOString()
+        }).eq('id', saleCarId)
+        
+        setSaleModalOpen(false)
         router.refresh()
     }
 
@@ -357,6 +383,13 @@ export default function InventoryClient({ initialVehicles = [] }: { initialVehic
                     </div>
                 </div>
             </div>
+
+            <SaleCustomerModal
+                isOpen={saleModalOpen}
+                onClose={() => setSaleModalOpen(false)}
+                onConfirm={handleConfirmSale}
+                carModel={saleCarModel}
+            />
         </div>
     )
 }
