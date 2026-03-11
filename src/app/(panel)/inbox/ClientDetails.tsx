@@ -15,6 +15,8 @@ interface ClientDetailsProps {
 }
 
 type SysTag = { id: string; name: string; color: string }
+type SysStage = { id: string; name: string; color: string; order: number }
+type ActiveDeal = { id: string; stage_id: string }
 
 type Customer = {
     id: string
@@ -42,6 +44,13 @@ export default function ClientDetails({ conversation, onClose }: ClientDetailsPr
     const [customer, setCustomer] = useState<Customer | null>(null)
     const [isLoading, setIsLoading] = useState(true)
 
+    // Kanban Stage Switcher
+    const [allStages, setAllStages] = useState<SysStage[]>([])
+    const [activeDeal, setActiveDeal] = useState<ActiveDeal | null>(null)
+    const [isStageDropdownOpen, setIsStageDropdownOpen] = useState(false)
+    const [isCreatingDeal, setIsCreatingDeal] = useState(false)
+    const stagePopoverRef = useRef<HTMLDivElement>(null)
+
     // Extras para E3.S3
     const [allTags, setAllTags] = useState<SysTag[]>([])
     const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false)
@@ -58,6 +67,10 @@ export default function ClientDetails({ conversation, onClose }: ClientDetailsPr
             // Buscar Tags Ativas do Sistema
             const { data: tData } = await supabase.from('customer_tags').select('*').eq('is_active', true)
             if (tData) setAllTags(tData)
+
+            // Buscar Estágios do Funil (Kanban)
+            const { data: sData } = await supabase.from('deal_stages').select('*').order('order', { ascending: true })
+            if (sData) setAllStages(sData)
 
             const fetchQuery = supabase
                 .from('customers')
@@ -95,6 +108,17 @@ export default function ClientDetails({ conversation, onClose }: ClientDetailsPr
                     tags: mappedTags
                 })
                 setNotes(dbCustomer.notes || '')
+
+                // Fetch latest active deal for the customer
+                const { data: dData } = await supabase
+                    .from('deals')
+                    .select('id, stage_id, deal_stages(name)')
+                    .eq('customer_id', dbCustomer.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single()
+                
+                if (dData) setActiveDeal({ id: dData.id, stage_id: dData.stage_id })
             }
 
             setIsLoading(false)
@@ -109,10 +133,46 @@ export default function ClientDetails({ conversation, onClose }: ClientDetailsPr
             if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
                 setIsTagDropdownOpen(false)
             }
+            if (stagePopoverRef.current && !stagePopoverRef.current.contains(event.target as Node)) {
+                setIsStageDropdownOpen(false)
+            }
         }
         document.addEventListener("mousedown", handleClickOutside)
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [])
+
+    const handleStageChange = async (stage: SysStage) => {
+        if (!customer) return
+        setIsStageDropdownOpen(false)
+        
+        if (activeDeal) {
+            // Atualiza deal existente
+            setActiveDeal({ ...activeDeal, stage_id: stage.id })
+            await supabase.from('deals').update({ stage_id: stage.id }).eq('id', activeDeal.id)
+        } else {
+            // Cria um novo deal
+            setIsCreatingDeal(true)
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+                const { data: newDeal, error } = await supabase
+                    .from('deals')
+                    .insert({
+                        customer_id: customer.id,
+                        stage_id: stage.id,
+                        user_id: user.id,
+                        vehicle_id: null,
+                        amount: 0,
+                    })
+                    .select('id, stage_id')
+                    .single()
+                
+                if (!error && newDeal) {
+                    setActiveDeal({ id: newDeal.id, stage_id: newDeal.stage_id })
+                }
+            }
+            setIsCreatingDeal(false)
+        }
+    }
 
     const handleSaveNotes = async () => {
         if (!customer) return
@@ -281,6 +341,66 @@ export default function ClientDetails({ conversation, onClose }: ClientDetailsPr
                                             </div>
                                         )}
                                     </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Sistema de Vendas (Kanban) */}
+                        {customer && allStages.length > 0 && (
+                            <div className="space-y-3 pt-4 border-t border-white/10" ref={stagePopoverRef}>
+                                <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">
+                                    <AlignLeft className="w-3 h-3" /> Gestão de Vendas
+                                </h4>
+                                <div className="relative w-full">
+                                    <button
+                                        onClick={() => setIsStageDropdownOpen(!isStageDropdownOpen)}
+                                        disabled={isCreatingDeal}
+                                        className="w-full flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all text-sm text-white/80"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            {activeDeal ? (
+                                                <>
+                                                    <span 
+                                                        className="w-2.5 h-2.5 rounded-full" 
+                                                        style={{ backgroundColor: allStages.find(s => s.id === activeDeal.stage_id)?.color || '#555' }} 
+                                                    />
+                                                    <span className="font-medium">
+                                                        {allStages.find(s => s.id === activeDeal.stage_id)?.name || 'Desconhecido'}
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
+                                                        {isCreatingDeal ? <div className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Plus className="w-3 h-3 text-white/60" />}
+                                                    </div>
+                                                    <span className="text-white/60">Abrir nova oportunidade (Lead)</span>
+                                                </>
+                                            )}
+                                        </div>
+                                        <ChevronRight className={`w-4 h-4 text-white/40 transition-transform ${isStageDropdownOpen ? 'rotate-90' : ''}`} />
+                                    </button>
+
+                                    {isStageDropdownOpen && (
+                                        <div className="absolute top-full left-0 w-full mt-2 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95">
+                                            <div className="max-h-60 overflow-y-auto hidden-scrollbar">
+                                                {allStages.map(stage => (
+                                                    <button
+                                                        key={stage.id}
+                                                        onClick={() => handleStageChange(stage)}
+                                                        className="flex items-center justify-between w-full p-2.5 hover:bg-white/5 rounded-lg transition-colors group"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: stage.color }} />
+                                                            <span className="text-sm text-white/80 font-medium">{stage.name}</span>
+                                                        </div>
+                                                        {activeDeal?.stage_id === stage.id && (
+                                                            <span className="text-xs text-[#25D366] font-mono">Ativo</span>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
