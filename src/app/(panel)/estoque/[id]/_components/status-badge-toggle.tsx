@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation'
 import { updateVehicleStatus } from '../../actions'
 import { toast } from 'react-hot-toast'
 import { ChevronDown, Check } from 'lucide-react'
+import { SaleCustomerModal } from '@/components/vehicles/SaleCustomerModal'
 
 interface Props {
     vehicleId: string
     initialStatus: string
+    carModel: string
 }
 
 const statusMap: Record<string, string> = {
@@ -23,12 +25,13 @@ const statusMap: Record<string, string> = {
 
 const statusOptions = ['Disponível', 'Reservado', 'Vendido']
 
-export function StatusBadgeToggle({ vehicleId, initialStatus }: Props) {
+export function StatusBadgeToggle({ vehicleId, initialStatus, carModel }: Props) {
     // Traduz o status inicial vindo do banco caso esteja em inglês ("available" -> "Disponível")
     const translatedInitial = statusMap[initialStatus?.toLowerCase()] || 'Disponível'
 
     const [status, setStatus] = useState(translatedInitial)
     const [isOpen, setIsOpen] = useState(false)
+    const [saleModalOpen, setSaleModalOpen] = useState(false)
     const [isPending, startTransition] = useTransition()
     const router = useRouter()
     const menuRef = useRef<HTMLDivElement>(null)
@@ -63,6 +66,12 @@ export function StatusBadgeToggle({ vehicleId, initialStatus }: Props) {
             return
         }
 
+        if (newStatus === 'Vendido') {
+            setIsOpen(false)
+            setSaleModalOpen(true)
+            return
+        }
+
         setStatus(newStatus)
         setIsOpen(false)
 
@@ -85,6 +94,27 @@ export function StatusBadgeToggle({ vehicleId, initialStatus }: Props) {
                 }
             } catch (err) {
                 toast.error('Erro ao atualizar status')
+                setStatus(status) // revert
+            }
+        })
+    }
+
+    const handleConfirmSale = async (buyerId: string | null) => {
+        setSaleModalOpen(false)
+        setStatus('Vendido')
+        
+        startTransition(async () => {
+            try {
+                const res = await updateVehicleStatus(vehicleId, 'sold', buyerId)
+                if (res?.error) {
+                    toast.error(`Erro ao vincular venda: ${res.error}`)
+                    setStatus(status) // revert
+                } else {
+                    toast.success('Veículo marcado como Vendido')
+                    router.refresh()
+                }
+            } catch (err) {
+                toast.error('Erro ao vincular venda')
                 setStatus(status) // revert
             }
         })
@@ -119,6 +149,13 @@ export function StatusBadgeToggle({ vehicleId, initialStatus }: Props) {
                     ))}
                 </div>
             )}
+
+            <SaleCustomerModal
+                isOpen={saleModalOpen}
+                onClose={() => setSaleModalOpen(false)}
+                onConfirm={handleConfirmSale}
+                carModel={carModel}
+            />
         </div>
     )
 }

@@ -60,12 +60,22 @@ export async function softDeleteVehicle(id: string) {
     return { success: true }
 }
 
-export async function updateVehicleStatus(id: string, newStatus: string) {
+export async function updateVehicleStatus(id: string, newStatus: string, buyerId: string | null = null) {
     const supabase = await createClient()
+
+    const payload: any = { status: newStatus }
+
+    if (newStatus === 'sold' || newStatus === 'Vendido') {
+        payload.buyer_id = buyerId
+        payload.sold_at = new Date().toISOString()
+    } else {
+        payload.buyer_id = null
+        payload.sold_at = null
+    }
 
     const { error } = await supabase
         .from('vehicles')
-        .update({ status: newStatus })
+        .update(payload)
         .eq('id', id)
 
     if (error) {

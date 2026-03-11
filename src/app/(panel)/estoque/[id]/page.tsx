@@ -69,7 +69,7 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
                             alt={`${v.brand} ${v.model}`}
                             className="w-full h-full object-cover rounded-3xl"
                         />
-                        <StatusBadgeToggle vehicleId={v.id} initialStatus={v.status || 'Disponível'} />
+                        <StatusBadgeToggle vehicleId={v.id} initialStatus={v.status || 'Disponível'} carModel={`${v.brand} ${v.model}`} />
                     </div>
                 </div>
 
