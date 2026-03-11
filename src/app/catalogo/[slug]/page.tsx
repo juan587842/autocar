@@ -11,6 +11,31 @@ import { WhatsAppButton } from '@/components/vehicles/whatsapp-button'
 import { VehicleCard } from '@/components/vehicles/vehicle-card'
 import { Badge } from '@/components/ui'
 
+async function getSettings() {
+    try {
+        const supabase = await createClient()
+        const { data, error } = await supabase
+            .from('store_settings')
+            .select('phone')
+            .limit(1)
+            .single()
+        if (error) return null
+        return data?.phone || null
+    } catch (err) {
+        console.error('[getSettings] Exception:', err)
+        return null
+    }
+}
+
+function formatPhoneForWhatsapp(phone: string | null) {
+    if (!phone) return undefined
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.length === 10 || cleanPhone.length === 11) {
+        return `55${cleanPhone}`
+    }
+    return cleanPhone || undefined
+}
+
 async function getVehicle(slug: string) {
     try {
         const supabase = await createClient()
@@ -59,7 +84,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         openGraph: {
             title,
             description,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             images: vehicle.vehicle_photos?.find((p: any) => p.is_cover)?.url
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 ? [{ url: vehicle.vehicle_photos.find((p: any) => p.is_cover)!.url }]
                 : [],
         },
@@ -71,7 +98,11 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
     const vehicle = await getVehicle(slug)
     if (!vehicle) notFound()
 
-    const similar = await getSimilarVehicles(vehicle.category_id, vehicle.id)
+    const [similar, rawPhone] = await Promise.all([
+        getSimilarVehicles(vehicle.category_id, vehicle.id),
+        getSettings()
+    ])
+    const whatsappPhone = formatPhoneForWhatsapp(rawPhone)
 
     const formattedPrice = new Intl.NumberFormat('pt-BR', {
         style: 'currency',
@@ -161,7 +192,10 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
 
                                     {/* WhatsApp CTA */}
                                     <div className="relative z-10">
-                                        <WhatsAppButton vehicleName={`${formattedBrand} ${vehicle.model} ${vehicle.year_fab}/${vehicle.year_model}`} />
+                                        <WhatsAppButton 
+                                            phone={whatsappPhone}
+                                            vehicleName={`${formattedBrand} ${vehicle.model} ${vehicle.year_fab}/${vehicle.year_model}`} 
+                                        />
                                     </div>
 
                                     {/* Actions */}
@@ -187,6 +221,7 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
                                 Veículos similares
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                 {similar.map((v: any) => (
                                     <VehicleCard
                                         key={v.slug}
@@ -201,6 +236,7 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
                                         color={v.color || ''}
                                         transmission={v.transmission || ''}
                                         fuel={v.fuel || ''}
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                         imageUrl={v.vehicle_photos?.find((p: any) => p.is_cover)?.url || v.vehicle_photos?.[0]?.url}
                                         status={v.status}
                                         category={v.vehicle_categories?.name}
