@@ -240,6 +240,7 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
                                         imageUrl={v.vehicle_photos?.find((p: any) => p.is_cover)?.url || v.vehicle_photos?.[0]?.url}
                                         status={v.status}
                                         category={v.vehicle_categories?.name}
+                                        condition={v.condition}
                                     />
                                 ))}
                             </div>

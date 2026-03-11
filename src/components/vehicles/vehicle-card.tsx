@@ -21,6 +21,7 @@ interface VehicleCardProps {
     imageUrl?: string
     status: string
     category?: string
+    condition?: string
 }
 
 export function VehicleCard({
@@ -36,6 +37,7 @@ export function VehicleCard({
     fuel,
     imageUrl,
     status,
+    condition,
 }: VehicleCardProps) {
     const { selectedVehicleIds, toggleVehicle } = useComparatorStore()
     const isSelected = selectedVehicleIds.includes(id)
@@ -124,6 +126,7 @@ export function VehicleCard({
 
                     {/* Tags */}
                     <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--color-glass-text-muted)]">
+                        {condition && <span className="px-2 py-1 rounded-lg bg-[var(--color-accent)]/10 text-[var(--color-accent)] font-medium border border-[var(--color-accent)]/20">{condition === 'novo' ? '0km' : 'Seminovo'}</span>}
                         <span className="px-2 py-1 rounded-lg bg-[var(--color-glass-inner)] border border-[var(--color-glass-border)]">{transmissionLabel}</span>
                         <span className="px-2 py-1 rounded-lg bg-[var(--color-glass-inner)] border border-[var(--color-glass-border)]">{fuelLabel}</span>
                         <span className="px-2 py-1 rounded-lg bg-[var(--color-glass-inner)] border border-[var(--color-glass-border)]">{formattedMileage} km</span>

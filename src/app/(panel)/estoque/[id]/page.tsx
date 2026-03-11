@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Edit3, Calendar, Fuel, Gauge, Settings2, Car, Tag } from "lucide-react"
+import { ArrowLeft, Edit3, Calendar, Fuel, Gauge, Settings2, Car, Tag, BadgeCheck } from "lucide-react"
 import VehicleImage from "@/components/ui/VehicleImage"
 import { AdGenerator } from "./AdGenerator"
 import { StatusBadgeToggle } from "./_components/status-badge-toggle"
@@ -128,6 +128,13 @@ export default async function VehicleDetailPage({ params }: { params: Promise<{ 
                                 <div>
                                     <p className="text-[10px] text-white/40 uppercase">Cor</p>
                                     <p className="text-sm font-bold">{v.color || 'N/A'}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white/5 rounded-lg"><BadgeCheck className="w-4 h-4 text-white/60" /></div>
+                                <div>
+                                    <p className="text-[10px] text-white/40 uppercase">Condição</p>
+                                    <p className="text-sm font-bold">{v.condition === 'novo' ? 'Novo (0km)' : v.condition === 'seminovo' ? 'Seminovo' : v.condition || 'N/A'}</p>
                                 </div>
                             </div>
                         </div>

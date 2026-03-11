@@ -20,6 +20,7 @@ interface Vehicle {
     status: string
     vehicle_photos: { url: string; is_cover: boolean }[]
     vehicle_categories: { name: string } | null
+    condition?: string
 }
 
 export function FeaturedSection({ vehicles }: { vehicles: Vehicle[] }) {
@@ -76,6 +77,7 @@ export function FeaturedSection({ vehicles }: { vehicles: Vehicle[] }) {
                                 imageUrl={vehicle.vehicle_photos?.find(p => p.is_cover)?.url || vehicle.vehicle_photos?.[0]?.url}
                                 status={vehicle.status}
                                 category={vehicle.vehicle_categories?.name}
+                                condition={vehicle.condition}
                             />
                         </motion.div>
                     ))}

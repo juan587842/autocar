@@ -1,4 +1,4 @@
-import { Calendar, Gauge, Fuel, Settings, Palette, Car, Hash, FileText } from 'lucide-react'
+import { Calendar, Gauge, Fuel, Settings, Palette, Car, Hash, FileText, Tag } from 'lucide-react'
 
 interface SpecsProps {
     vehicle: {
@@ -15,6 +15,7 @@ interface SpecsProps {
         engine: string | null
         description: string | null
         features?: string[]
+        condition?: string
     }
     customFields: { label: string; value: string }[]
 }
@@ -71,6 +72,7 @@ export function VehicleSpecs({ vehicle, customFields }: SpecsProps) {
         { icon: Hash, label: 'Final da Placa', value: vehicle.plate_end || '—' },
         { icon: Car, label: 'Portas', value: vehicle.doors ? `${vehicle.doors}` : '—' },
         { icon: FileText, label: 'Motor', value: vehicle.engine || customEngineInfo || '—' },
+        { icon: Tag, label: 'Condição', value: vehicle.condition === 'novo' ? 'Novo (0km)' : vehicle.condition === 'seminovo' ? 'Seminovo' : vehicle.condition || '—' },
     ]
 
     return (
