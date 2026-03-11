@@ -7,11 +7,17 @@ import { ArrowLeft, Edit3, Trash2, Mail, Phone, CalendarDays, MessageSquare, Sti
 import { createClient } from '@/lib/supabase/client'
 
 interface ProfileClientProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     customer: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     historyEvents: any[]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    purchasedVehicles: any[]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    offersMade: any[]
 }
 
-export default function ProfileClient({ customer, historyEvents }: ProfileClientProps) {
+export default function ProfileClient({ customer, historyEvents, purchasedVehicles, offersMade }: ProfileClientProps) {
     const router = useRouter()
     const supabase = createClient()
 
@@ -37,6 +43,7 @@ export default function ProfileClient({ customer, historyEvents }: ProfileClient
         source: customer.source || "Direto",
         seller: "Vendedor ID: " + (customer.assigned_to?.slice(0, 4) || 'N/A'),
         createdAt: new Date(customer.created_at).toLocaleDateString('pt-BR'),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         tags: customer.customer_tag_links?.map((link: any) => ({
             label: link.customer_tags?.name || 'Tag',
             color: link.customer_tags?.color === '#ef4444'
@@ -140,6 +147,7 @@ export default function ProfileClient({ customer, historyEvents }: ProfileClient
                             <p className="text-sm text-white/50 mb-4">Lead desde {c.createdAt}</p>
 
                             <div className="flex flex-wrap gap-2 justify-center mb-6">
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                 {c.tags.map((tag: any, i: number) => (
                                     <span key={i} className={`px-2.5 py-1 rounded-md border text-xs font-medium ${tag.color}`}>
                                         {tag.label}
@@ -190,6 +198,37 @@ export default function ProfileClient({ customer, historyEvents }: ProfileClient
                             <MessageSquare className="w-5 h-5" /> Iniciar Conversa
                         </Link>
                     </div>
+
+                    {/* Veículos Comprados */}
+                    {purchasedVehicles.length > 0 && (
+                        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl">
+                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                <Tag className="w-5 h-5 text-green-400" /> Veículos Adquiridos
+                            </h3>
+                            <div className="space-y-4">
+                                {purchasedVehicles.map(v => (
+                                    <div key={v.id} className="p-4 bg-black/20 border border-white/5 rounded-xl hover:bg-white/5 transition-all">
+                                        <div className="flex items-center gap-4">
+                                            {v.images?.[0] ? (
+                                                <img src={v.images[0]} alt={v.model} className="w-16 h-16 rounded-lg object-cover" />
+                                            ) : (
+                                                <div className="w-16 h-16 rounded-lg bg-white/10 flex items-center justify-center text-white/40">
+                                                    Sem foto
+                                                </div>
+                                            )}
+                                            <div>
+                                                <h4 className="font-bold text-white">{v.brand} {v.model}</h4>
+                                                <p className="text-xs text-white/60">{v.year_fab}/{v.year_model} • R$ {Number(v.price).toLocaleString('pt-BR')}</p>
+                                                <p className="text-xs text-green-400 font-medium mt-1">
+                                                    Comprado em {new Date(v.sold_at).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Lado Direito - Timeline e Histórico */}
@@ -225,12 +264,51 @@ export default function ProfileClient({ customer, historyEvents }: ProfileClient
                         </div>
                     </div>
 
+                    {/* Ofertas Realizadas */}
+                    {offersMade.length > 0 && (
+                        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl">
+                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                <MessageSquare className="w-5 h-5 text-blue-400" /> Ofertas Realizadas
+                            </h3>
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                {offersMade.map(offer => (
+                                    <div key={offer.id} className="p-4 bg-black/20 border border-white/5 rounded-xl flex flex-col justify-between">
+                                        <div>
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h4 className="font-bold text-white text-sm">{offer.vehicle_name}</h4>
+                                                <span className={`px-2 py-0.5 rounded-md text-[10px] uppercase font-bold border
+                                                    ${offer.status === 'accepted' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                                                        offer.status === 'rejected' ? 'bg-white/10 text-white/40 border-white/10' :
+                                                            offer.status === 'analyzing' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                                                                'bg-red-500/20 text-red-400 border-red-500/30'}`}>
+                                                    {offer.status === 'accepted' ? 'Aceita' :
+                                                        offer.status === 'rejected' ? 'Recusada' :
+                                                            offer.status === 'analyzing' ? 'Em Análise' :
+                                                                'Nova'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-white/50">{offer.plate || 'S/ Placa'} • {offer.km || offer.mileage ? `${offer.km || offer.mileage} km` : 'S/ KM'}</p>
+                                        </div>
+                                        <div className="mt-3 pt-3 border-t border-white/10 flex justify-between items-end">
+                                            <div>
+                                                <p className="text-[10px] text-white/40 uppercase">Valor Esperado</p>
+                                                <p className="text-sm text-red-400 font-bold">R$ {Number(offer.expected_price).toLocaleString('pt-BR')}</p>
+                                            </div>
+                                            <p className="text-[10px] text-white/40">{new Date(offer.created_at).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Timeline (Histórico) */}
                     <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
                         <h3 className="text-lg font-bold mb-6">Histórico de Interações</h3>
 
                         <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
 
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                             {c.history.map((event: any) => (
                                 <div key={event.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                                     {/* Icon/Dot no Centro */}

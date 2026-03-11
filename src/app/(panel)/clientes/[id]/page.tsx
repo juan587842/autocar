@@ -43,10 +43,26 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
         `)
         .eq('customer_id', id)
 
+    // 1. Busca Veículos Comprados pelo Cliente
+    const { data: purchasedVehicles } = await supabase
+        .from('vehicles')
+        .select('*')
+        .eq('buyer_id', id)
+        .order('sold_at', { ascending: false })
+
+    // 2. Busca Ofertas realizadas por este Cliente
+    const { data: offersMade } = await supabase
+        .from('vehicle_offers')
+        .select('*')
+        .eq('customer_id', id)
+        .order('created_at', { ascending: false })
+
     // Agrupando e ordenando histórico (Timeline Adapter)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const historyEvents: any[] = []
 
     if (appointments) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         appointments.forEach((app: any) => {
             const statusMap: Record<string, string> = {
                 scheduled: 'Agendado',
@@ -69,6 +85,7 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
     }
 
     if (interests) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         interests.forEach((interest: any) => {
             const v = interest.vehicles
             const vehicleInfo = v 
@@ -88,5 +105,12 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
 
     historyEvents.sort((a, b) => b.rawDate - a.rawDate)
 
-    return <ProfileClient customer={customer} historyEvents={historyEvents} />
+    return (
+        <ProfileClient 
+            customer={customer} 
+            historyEvents={historyEvents} 
+            purchasedVehicles={purchasedVehicles || []} 
+            offersMade={offersMade || []} 
+        />
+    )
 }
